@@ -80,14 +80,15 @@ jobs:
         run: |
           section() { echo; echo "=================== $1 ==================="; }
           section "BADGING"; head -n 80 badging.txt
-          section "REA PACKAGE"; jq . package.json 2>/dev/null | head -n 600 || head -c 60000 package.json
-          section "REA RESOURCES"; jq . resources.json 2>/dev/null | head -n 2500 || head -c 150000 resources.json
-          section "REA RESOURCES FR"; jq . resources-fr.json 2>/dev/null | head -n 1500 || head -c 80000 resources-fr.json
+          section "REA PACKAGE"; head -c 60000 package.json
+          section "REA RESOURCES"; head -c 80000 resources.json
+          section "REA RESOURCES FR"; head -c 80000 resources-fr.json
+          section "AAPT2 STRINGS (default)"
+          grep -A1 -E 'resource 0x[0-9a-f]+ string/' resources-aapt2.txt | grep -E '^\s+\(\) ' | sed -E 's/^\s+\(\) //' | head -n 3000
           section "REA FLUTTER"; head -c 4000 flutter.json
-          section "APP CLASSES (outside common libraries)"
-          grep -vE '^L(android|androidx|kotlin|kotlinx|java|javax|com/google|okhttp3|okio|retrofit2|com/squareup|org/|io/reactivex|dagger|com/bumptech|com/facebook|com/fasterxml|com/airbnb|j\$|io/ktor|net/)' dex-classes.txt \
-            | sed -E 's#^L##; s#;$##' | grep -vE '\$[0-9]+$' | head -n 1500
-          section "LAYOUTS / DRAWABLES"; grep -E 'resource 0x[0-9a-f]+ (layout|menu|navigation|xml)/' resources-aapt2.txt | head -n 400
+          section "THIRD-PARTY LIBRARIES (package prefixes)"
+          sed -E 's#^L##; s#;$##' dex-classes.txt | awk -F/ 'NF>3 {print $1"/"$2"/"$3}' | sort | uniq -c | sort -rn | awk '$1>=10' | head -n 120
+          section "LAYOUTS / DRAWABLES"; grep -oE '(layout|menu|navigation|xml)/[A-Za-z0-9_]+' resources-aapt2.txt | sort -u | grep -vE '/(abc_|design_|mtrl_|material_|m3_|notification_|select_dialog|support_|exo_|test_)' | tr '\n' ' ' 
           section "ENDPOINTS AND API WORDS IN DEX"
           grep -iE 'player_api|xmltv|get\.php|action=|get_live|get_vod|get_series|get_short_epg|timeshift|catchup|/api/|\.php|mac_address|device_key|playlist|parental|subtitle|epg' dex-strings.txt \
             | grep -vE '^L[a-zA-Z/]' | sort -u | head -n 600

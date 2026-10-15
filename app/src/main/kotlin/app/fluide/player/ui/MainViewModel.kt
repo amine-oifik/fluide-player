@@ -1674,6 +1674,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /** Images cached on disk and in memory (posters, logos). */
+    @OptIn(coil.annotation.ExperimentalCoilApi::class)
     fun clearCache() {
         val loader = getApplication<Application>().imageLoader
         loader.memoryCache?.clear()

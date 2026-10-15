@@ -205,7 +205,7 @@ class PlaybackController(
         val s = session ?: return
         if (!s.channel.vod) return
         val duration = player.duration
-        val target = if (duration != C.TIME_UNSET && duration > 0) positionMs.coerceIn(0, duration - 1_000) else positionMs.coerceAtLeast(0)
+        val target = if (duration != C.TIME_UNSET && duration > 0) positionMs.coerceIn(0, (duration - 1_000).coerceAtLeast(0)) else positionMs.coerceAtLeast(0)
         player.seekTo(target)
         s.lastPositionMs = target
         if (uiState.value.phase == PlaybackPhase.ENDED) {

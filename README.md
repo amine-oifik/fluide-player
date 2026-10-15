@@ -1,8 +1,9 @@
 # Fluide Player — lecteur IPTV / multimédia pour Android TV et mobile
 
-Lecteur **neutre** (aucune chaîne fournie) pour les playlists M3U et guides XMLTV de **votre propre
-service**. Objectif : une lecture où le gel d'image ne se voit pas, même sur des flux M3U de qualité
-médiocre et des box à 1 Go de RAM.
+Lecteur **neutre** (aucune chaîne fournie) pour les comptes **Xtream Codes**, les playlists M3U et les
+guides XMLTV de **votre propre service**. TV en direct, **films**, **séries**, **replay**, guide des
+programmes, contrôle parental, reprise de lecture — avec un moteur de lecture où le gel d'image ne se voit
+pas, même sur des flux IPTV de qualité médiocre et des box à 1 Go de RAM.
 
 - Android 7.0+ (minSdk 24), cible Android 16 (targetSdk 36), compileSdk 37
 - Un seul APK : Android TV / Google TV / Fire TV (télécommande) et téléphones / tablettes (tactile)
@@ -37,12 +38,45 @@ puis publie les APK :
   `build-log.txt` et `STATUS.txt` (résultat du build) ;
 - onglet **Actions** → dernier build → *Artifacts*.
 
+Les builds des branches de travail `claude/*` sont publiés de la même façon sur la branche **`apk-preview`**.
+
 Le dépôt étant public, aucune clé de signature n'y est stockée : chaque build est signé avec une clé de test
 générée à la volée. Pour installer un nouvel APK par-dessus l'ancien, désinstallez d'abord l'ancien
 (ou placez votre propre clé en `keystore/fluide-debug.jks`, hors dépôt public).
 
-Premier lancement : écran **Sources** → saisir l'URL M3U de votre fournisseur (+ URL XMLTV facultative),
-cocher l'attestation de droits, « Ajouter l'URL ». Le guide s'ouvre dès que l'import est terminé.
+Premier lancement : écran **Playlists** → onglet **Xtream Codes** (URL du serveur, utilisateur, mot de
+passe) ou **URL M3U** / **Fichier**, cocher l'attestation de droits, « Se connecter » / « Ajouter l'URL ».
+L'accueil s'ouvre dès que l'import est terminé. Un lien `get.php?username=…&password=…` collé dans l'onglet
+M3U est reconnu et importé comme compte Xtream (films et séries détaillés).
+
+---
+
+## Fonctions (parité avec IBO Player)
+
+La liste des fonctions a été établie à partir d'un inventaire **statique** de l'APK de référence
+`ibop.apk` (com.ibostore.meplayerib4k 230.2) fait avec [REA](https://github.com/morluto/rea)
+(`inspect-android-package`, `decode-android-resources`, inventaire des écrans et des appels Xtream) sur un
+runner GitHub (workflow manuel `Analyze reference APK`). **Aucun code, aucune image ni aucun texte de cette
+application n'est repris** : tout est réécrit pour Fluide Player.
+
+| Fonction de la référence | Dans Fluide Player |
+|---|---|
+| Accueil Live TV / Films / Séries / Replay, playlists, réglages, actualiser, quitter | Écran d'accueil à tuiles, horloge, ligne compte (expiration, statut, connexions) et alerte d'expiration à 7 jours |
+| « Add M3U Xtream » / « Add M3U Playlist », gestion de plusieurs playlists | Comptes Xtream Codes (vérification du compte), URL M3U, fichier ; activer / actualiser / supprimer ; format TS ou HLS |
+| Live TV : catégories, chaînes, recherche, favoris (appui long), historique | Catégories, liste virtualisée, recherche instantanée, favoris (Menu / appui long), **Récents**, aperçu vidéo + guide de la chaîne |
+| EPG (`xmltv.php`, `get_short_epg`) et guide des programmes | Guide XMLTV importé + `get_short_epg` à la demande ; écran **Guide TV** jour par jour |
+| Catch-Up (`/timeshift/`) | **Replay** des programmes passés (Xtream `xc`, `shift`, `append`, `flussonic`, modèles `catchup-source`) |
+| Films : catégories, tri (A-Z, Z-A, note, ajouts récents), fiche (genre, réalisateur, acteurs, durée, note, bande-annonce) | Grille d'affiches, tri, recherche, favoris, « Continuer à regarder », « Ajouts récents », fiche détaillée (`get_vod_info`), bande-annonce YouTube |
+| Séries : saisons et épisodes, « dernier épisode regardé », « Up Next » | Fiche série (`get_series_info`), saisons, épisodes, reprise, **épisode suivant** automatique (compte à rebours) |
+| « Reprendre là où vous vous êtes arrêté » / « Depuis le début » | Points de reprise films et épisodes, conservés après actualisation |
+| Pistes audio, sous-titres, format d'image, informations média | Panneau d'options (▼ / Menu) : audio, sous-titres, Adapter / Étirer / Zoom, statistiques |
+| Contrôle parental (code à 4 chiffres), gérer / masquer les catégories | Code parental (0000 par défaut), catégories adultes verrouillées, chaque catégorie visible / verrouillée / masquée |
+| Lecteur externe, démarrage automatique, vider le cache | « Ouvrir avec… » (VLC, MX…), lancement au démarrage, vider le cache images, effacer l'historique |
+
+**Volontairement non repris** : le système d'activation payant de la référence (adresse MAC, « device key »,
+code d'activation, abonnement, envoi des playlists par leur site), leurs serveurs, l'émulation de boîtier
+MAG / portail Stalker, les lecteurs VLC / IJK embarqués (Fluide garde son moteur Media3 anti-gel), la météo
+et la grille d'applications du lanceur.
 
 ---
 
@@ -115,18 +149,22 @@ UNSTABLE 1500 / 4000 / 25000 / 50000, HOSTILE 2500 / 6000 / 40000 / 60000.
 
 ## 6. Télécommande
 
-| Touche | Plein écran |
-|---|---|
-| Haut / CH+ , Bas / CH− | Chaîne suivante / précédente |
-| OK, Gauche, GUIDE | Liste des chaînes (OK sur une erreur : réessayer) |
-| Droite, INFO | Bandeau d'information |
-| 0–9 | Numéro de chaîne |
-| LAST | Chaîne précédente |
-| MENU | Statistiques de lecture (débit, tampon, décodeur, niveau de stabilité…) |
-| Lecture/Pause | Pause (un direct en pause depuis > 30 s reprend au direct) |
-| Retour ×2 | Quitter |
+| Touche | TV en direct (plein écran) | Film, épisode, replay |
+|---|---|---|
+| Haut / CH+ , Bas / CH− | Chaîne suivante / précédente | Haut : barre de lecture · Bas : options |
+| OK | Liste des chaînes (sur une erreur : réessayer) | Pause / lecture (fin d'épisode : épisode suivant) |
+| Gauche / Droite | Liste des chaînes / bandeau d'information | −10 s / +10 s (maintenu : 30 s puis 60 s) |
+| ⏪ / ⏩ | — | −30 s / +30 s |
+| 0–9 | Numéro de chaîne | — |
+| LAST | Chaîne précédente | — |
+| MENU | Options : audio, sous-titres, format d'image, informations média | idem |
+| ⏭ | — | Épisode suivant |
+| Lecture/Pause | Pause (un direct en pause depuis > 30 s reprend au direct) | Pause |
+| Retour | Retour à la liste des chaînes, puis à l'accueil | Retour à la fiche (la position est enregistrée) |
 
-Dans la liste : Menu ou appui long sur OK = favori. Au tactile : toucher l'image ouvre la liste.
+Dans la TV en direct : un premier OK lance la chaîne dans l'aperçu, un second OK la met en plein écran.
+Dans les listes : Menu ou appui long sur OK = favori. Au tactile : toucher l'image ouvre la liste (direct)
+ou la barre de lecture (vidéo). Retour sur l'accueil : quitter.
 
 ---
 
@@ -146,9 +184,8 @@ Dans la liste : Menu ou appui long sur OK = favori. Au tactile : toucher l'image
 - Formats : tout ce que Media3 lit (HLS, DASH, MPEG-TS, MP4, MKV, RTSP, UDP). Pas de libVLC.
   Pour l'audio MP2 / AC-3 sur les box sans décodeur : ajouter l'extension FFmpeg de Media3
   (`decoder_ffmpeg`, à compiler avec le NDK) — elle est déjà activée par `EXTENSION_RENDERER_MODE_ON`.
-- Pas encore d'interface pour le replay (catch-up) : les attributs `catchup` sont importés et stockés.
-- Pas d'API Xtream Codes (connexion par identifiants) : import M3U uniquement.
-- Pas encore : contrôle parental, enregistrement, multi-écran, image dans l'image.
+- Pas de portail Stalker / MAG (connexion par adresse MAC).
+- Pas encore : enregistrement, multi-écran, image dans l'image, interface en d'autres langues que le français.
 - Préchargement « lecteur complet » d'une chaîne voisine (2ᵉ décodeur) non activé : sur IPTV en direct il
   coûte une connexion permanente ; le `DefaultPreloadManager` de Media3 a été écarté pour le live (données
   préchargées périmées). Le préchargement DNS + playlist est en place.

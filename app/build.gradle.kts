@@ -95,4 +95,6 @@ dependencies {
     implementation(libs.coil.compose)
 
     testImplementation(libs.junit)
+    // Runs the SQL of the repositories against a real SQLite (schema, migration, queries).
+    testImplementation(libs.robolectric)
 }

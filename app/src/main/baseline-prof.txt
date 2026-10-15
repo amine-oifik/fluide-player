@@ -1,0 +1,10 @@
+# Baseline profile: these code paths are compiled ahead of time at install (androidx.profileinstaller
+# also applies it to sideloaded APKs), so the first launch and the first zap do not run in the JIT.
+# App and core logic (startup, playlist parsing, zapping, watchdog).
+HSPLapp/fluide/core/**->**(**)**
+HSPLapp/fluide/player/**->**(**)**
+# Media3 hot paths: player loop, MPEG-TS and HLS parsing, HTTP data source.
+HSPLandroidx/media3/exoplayer/ExoPlayerImplInternal;->**(**)**
+HSPLandroidx/media3/exoplayer/hls/**->**(**)**
+HSPLandroidx/media3/extractor/ts/**->**(**)**
+HSPLandroidx/media3/datasource/okhttp/**->**(**)**

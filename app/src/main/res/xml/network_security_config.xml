@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The sources are chosen by the user (the app ships no content) and IPTV servers are very often
+  plain HTTP, so cleartext must be allowed. HTTPS still uses the system trust store only.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

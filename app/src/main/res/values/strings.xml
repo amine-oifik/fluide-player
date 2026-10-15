@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Fluide Player</string>
+
+    <!-- Player -->
+    <string name="error_signal_lost">Signal perdu</string>
+    <string name="error_retry_in">Nouvel essai dans %1$d s</string>
+    <string name="error_retry_hint">OK : réessayer maintenant</string>
+    <string name="error_access_denied">Accès refusé par le serveur (HTTP %1$d)</string>
+    <string name="error_not_found">Chaîne introuvable sur le serveur (HTTP %1$d)</string>
+    <string name="error_http">Erreur du serveur (HTTP %1$d)</string>
+    <string name="error_decoder">Ce flux ne peut pas être décodé par cet appareil</string>
+    <string name="error_drm">Contenu protégé : licence refusée ou système non pris en charge</string>
+    <string name="error_format">Format non reconnu : le serveur n\'a pas renvoyé de flux vidéo</string>
+    <string name="error_network">Connexion au serveur impossible</string>
+    <string name="notice_backup_source">Source de secours</string>
+    <string name="notice_no_channel_number">Aucune chaîne n° %1$d</string>
+    <string name="notice_exit">Appuyez encore sur Retour pour quitter</string>
+    <string name="notice_favorite_added">Ajoutée aux favoris</string>
+    <string name="notice_favorite_removed">Retirée des favoris</string>
+    <string name="epg_now">Maintenant</string>
+    <string name="epg_next">Ensuite</string>
+    <string name="epg_none">Pas de programme pour cette chaîne</string>
+
+    <!-- Guide -->
+    <string name="guide_all_channels">Toutes les chaînes</string>
+    <string name="guide_favorites">Favoris</string>
+    <string name="guide_search_hint">Rechercher une chaîne</string>
+    <string name="guide_empty">Aucune chaîne</string>
+    <string name="guide_no_group">Sans catégorie</string>
+    <string name="guide_sources">Sources et réglages</string>
+    <string name="guide_favorite_hint">Menu ou appui long : favori</string>
+
+    <!-- Sources -->
+    <string name="sources_title">Sources</string>
+    <string name="sources_empty">Aucune source. Ajoutez la playlist M3U fournie par votre fournisseur de services.</string>
+    <string name="sources_add_title">Ajouter une source</string>
+    <string name="source_name">Nom</string>
+    <string name="source_default_name">Ma playlist</string>
+    <string name="source_url">URL de la playlist (M3U)</string>
+    <string name="source_epg_url">URL du guide XMLTV (facultatif)</string>
+    <string name="source_user_agent">User-Agent (facultatif)</string>
+    <string name="source_max_connections">Connexions simultanées autorisées : %1$d</string>
+    <string name="source_attestation">Je certifie disposer des droits d\'accès aux contenus de cette source. Fluide Player ne fournit aucune chaîne.</string>
+    <string name="source_add_url">Ajouter l\'URL</string>
+    <string name="source_import_file">Importer un fichier…</string>
+    <string name="source_refresh">Actualiser</string>
+    <string name="source_delete">Supprimer</string>
+    <string name="source_activate">Activer</string>
+    <string name="source_active">Active</string>
+    <string name="source_updated">Mise à jour : %1$s</string>
+    <string name="source_never_updated">Jamais importée</string>
+    <plurals name="source_channels">
+        <item quantity="one">%1$d chaîne</item>
+        <item quantity="many">%1$d chaînes</item>
+        <item quantity="other">%1$d chaînes</item>
+    </plurals>
+    <string name="import_running">Import en cours : %1$d éléments lus</string>
+    <string name="import_epg_running">Guide en cours : %1$d programmes lus</string>
+    <string name="import_done">Import terminé : %1$d chaînes</string>
+    <string name="import_epg_done">Guide importé : %1$d programmes</string>
+    <string name="import_not_modified">Déjà à jour</string>
+    <string name="import_failed">Échec de l\'import : %1$s</string>
+    <string name="import_failed_reimport">Source illisible sur cet appareil : nouvel import en cours</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Réglages</string>
+    <string name="setting_resume">Reprendre la dernière chaîne au démarrage</string>
+    <string name="setting_afr">Fréquence d\'affichage automatique (AFR)</string>
+    <string name="setting_tunneling">Lecture tunnelisée (si l\'appareil la gère)</string>
+    <string name="setting_passthrough">Son multicanal en passthrough (HDMI)</string>
+    <string name="setting_stats">Statistiques de lecture (touche Menu)</string>
+    <string name="close">Fermer</string>
+</resources>

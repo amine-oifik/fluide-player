@@ -1,18 +1,20 @@
 # Builds the APKs on GitHub's runners (official Android SDK + Maven), runs the unit tests, then:
 #  - attaches the APKs and the build log to the run (Actions tab -> run -> Artifacts),
-#  - publishes them on the "apk" branch so they can be downloaded directly from the repository.
+#  - publishes them on the "apk" branch (builds of main) or "apk-preview" (builds of claude/* work
+#    branches) so they can be downloaded directly from the repository.
 name: Build APK
 
 on:
   push:
-    branches: [main]
+    branches: [main, "claude/**"]
+    paths-ignore: [".github/workflows/analyze-reference.yml"]
   workflow_dispatch:
 
 permissions:
   contents: write
 
 concurrency:
-  group: build-apk
+  group: build-apk-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -51,17 +53,18 @@ jobs:
         env:
           OUTCOME: ${{ steps.build.outcome }}
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TARGET: ${{ github.ref == 'refs/heads/main' && 'apk' || 'apk-preview' }}
         run: |
           mkdir -p publish
           cp app/build/outputs/apk/release/app-release.apk publish/fluide-player-release.apk 2>/dev/null || true
           cp app/build/outputs/apk/debug/app-debug.apk publish/fluide-player-debug.apk 2>/dev/null || true
           tail -c 3000000 build-log.txt > publish/build-log.txt 2>/dev/null || true
-          printf '%s %s\n' "$OUTCOME" "$GITHUB_SHA" > publish/STATUS.txt
+          printf '%s %s %s\n' "$OUTCOME" "$GITHUB_SHA" "$GITHUB_REF_NAME" > publish/STATUS.txt
           cd publish
           git init -q
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout -q -b apk
+          git checkout -q -b "$TARGET"
           git add -A
-          git commit -q -m "Build ${GITHUB_SHA::7}: $OUTCOME [skip ci]"
-          git push -q -f "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" apk
+          git commit -q -m "Build ${GITHUB_SHA::7} ($GITHUB_REF_NAME): $OUTCOME [skip ci]"
+          git push -q -f "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$TARGET"

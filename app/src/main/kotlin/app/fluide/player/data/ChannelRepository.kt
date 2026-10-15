@@ -4,6 +4,7 @@ import android.database.Cursor
 import app.fluide.core.m3u.StreamKind
 import app.fluide.core.text.SearchNormalizer
 import app.fluide.player.data.db.FluideDatabase
+import app.fluide.player.data.db.inTransaction
 import app.fluide.player.data.secure.UrlCipher
 
 /**
@@ -14,27 +15,98 @@ class ChannelRepository(private val database: FluideDatabase, private val cipher
 
     private val db get() = database.readableDatabase
 
-    fun channelIds(sourceId: Long, filter: ChannelFilter): LongArray = when (filter) {
-        ChannelFilter.All ->
-            longs("SELECT id FROM channel WHERE source_id = $sourceId ORDER BY position")
-        ChannelFilter.Favorites -> longs(
-            "SELECT c.id FROM channel c JOIN favorite f ON f.source_id = c.source_id AND f.name = c.name " +
-                "WHERE c.source_id = $sourceId ORDER BY c.position",
-        )
-        is ChannelFilter.Group -> if (filter.name == null) {
-            longs("SELECT id FROM channel WHERE source_id = $sourceId AND grp IS NULL ORDER BY position")
-        } else {
-            longs("SELECT id FROM channel WHERE source_id = $sourceId AND grp = ? ORDER BY position", filter.name)
-        }
-        is ChannelFilter.Search -> {
-            val match = ftsQuery(filter.query)
-            if (match == null) {
-                LongArray(0)
+    /**
+     * Ids of the channels of [filter], in playlist order. Channels of [excluded] categories (hidden, or
+     * locked by the parental control) are left out of every list but their own category.
+     */
+    fun channelIds(sourceId: Long, filter: ChannelFilter, excluded: Set<String> = emptySet()): LongArray {
+        val (skip, skipArgs) = exclusion("c.grp", excluded)
+        return when (filter) {
+            ChannelFilter.All ->
+                longs("SELECT c.id FROM channel c WHERE c.source_id = $sourceId$skip ORDER BY c.position", *skipArgs)
+            ChannelFilter.Favorites -> longs(
+                "SELECT c.id FROM channel c JOIN favorite f ON f.source_id = c.source_id AND f.name = c.name " +
+                    "WHERE c.source_id = $sourceId$skip ORDER BY c.position",
+                *skipArgs,
+            )
+            ChannelFilter.Recent -> longs(
+                "SELECT c.id FROM channel_history h JOIN channel c ON c.source_id = h.source_id AND c.name = h.name " +
+                    "WHERE h.source_id = $sourceId$skip GROUP BY h.name ORDER BY MAX(h.watched_at) DESC LIMIT $RECENT_LIMIT",
+                *skipArgs,
+            )
+            ChannelFilter.Catchup -> longs(
+                "SELECT c.id FROM channel c WHERE c.source_id = $sourceId$skip AND c.catchup_days > 0 ORDER BY c.position",
+                *skipArgs,
+            )
+            is ChannelFilter.Group -> if (filter.name == null) {
+                longs("SELECT id FROM channel WHERE source_id = $sourceId AND grp IS NULL ORDER BY position")
             } else {
-                longs(
-                    "SELECT id FROM channel WHERE source_id = $sourceId AND id IN " +
-                        "(SELECT docid FROM channel_fts WHERE channel_fts MATCH ?) ORDER BY position LIMIT 500",
-                    match,
+                longs("SELECT id FROM channel WHERE source_id = $sourceId AND grp = ? ORDER BY position", filter.name)
+            }
+            is ChannelFilter.Search -> {
+                val match = ftsQuery(filter.query)
+                if (match == null) {
+                    LongArray(0)
+                } else {
+                    longs(
+                        "SELECT c.id FROM channel c WHERE c.source_id = $sourceId$skip AND c.id IN " +
+                            "(SELECT docid FROM channel_fts WHERE channel_fts MATCH ?) ORDER BY c.position LIMIT 500",
+                        *skipArgs,
+                        match,
+                    )
+                }
+            }
+        }
+    }
+
+    fun catchupCount(sourceId: Long): Int = db.rawQuery(
+        "SELECT COUNT(*) FROM channel WHERE source_id = $sourceId AND catchup_days > 0",
+        null,
+    ).use { c -> if (c.moveToFirst()) c.getInt(0) else 0 }
+
+    /** Remembers a channel for the "Récents" list (keyed by name: survives playlist refreshes). */
+    fun recordHistory(sourceId: Long, name: String) {
+        val w = database.writableDatabase
+        w.execSQL(
+            "INSERT OR REPLACE INTO channel_history(source_id, name, watched_at) VALUES (?, ?, ?)",
+            arrayOf<Any>(sourceId, name, System.currentTimeMillis()),
+        )
+        w.execSQL(
+            "DELETE FROM channel_history WHERE source_id = ? AND name NOT IN " +
+                "(SELECT name FROM channel_history WHERE source_id = ? ORDER BY watched_at DESC LIMIT $RECENT_LIMIT)",
+            arrayOf<Any>(sourceId, sourceId),
+        )
+    }
+
+    fun clearHistory(sourceId: Long) {
+        database.writableDatabase.delete("channel_history", "source_id = ?", arrayOf(sourceId.toString()))
+    }
+
+    /** Programmes of [epgKey] overlapping [fromSec, toSec), in order (EPG listing and catch-up). */
+    fun programmes(epgKey: String?, fromSec: Long, toSec: Long): List<Programme> {
+        if (epgKey == null) return emptyList()
+        return db.rawQuery(
+            "SELECT start, stop, title, subtitle, description, category FROM programme " +
+                "WHERE epg_key = ? AND start < $toSec AND stop > $fromSec ORDER BY start LIMIT 500",
+            arrayOf(epgKey),
+        ).use { c ->
+            val out = ArrayList<Programme>(c.count)
+            while (c.moveToNext()) {
+                out += Programme(c.getLong(0), c.getLong(1), c.getString(2), c.stringOrNull(3), c.stringOrNull(4), c.stringOrNull(5))
+            }
+            out
+        }
+    }
+
+    /** Stores programmes fetched on demand (Xtream short EPG) under the channel's guide key. */
+    fun storeProgrammes(epgKey: String, programmes: List<Programme>) {
+        if (programmes.isEmpty()) return
+        val w = database.writableDatabase
+        w.inTransaction {
+            for (p in programmes) {
+                execSQL(
+                    "INSERT OR REPLACE INTO programme(epg_key, start, stop, title, subtitle, description, category) VALUES (?,?,?,?,?,?,?)",
+                    arrayOf<Any?>(epgKey, p.startSec, p.stopSec, p.title, p.subtitle, p.description, p.category),
                 )
             }
         }
@@ -57,7 +129,8 @@ class ChannelRepository(private val database: FluideDatabase, private val cipher
         if (ids.isEmpty()) return emptyList()
         val sql = """
             SELECT c.id, c.number, c.name, c.grp, c.logo, c.epg_key, p.title, p.start, p.stop,
-                   EXISTS(SELECT 1 FROM favorite f WHERE f.source_id = c.source_id AND f.name = c.name)
+                   EXISTS(SELECT 1 FROM favorite f WHERE f.source_id = c.source_id AND f.name = c.name),
+                   IFNULL(c.catchup_days, 0)
             FROM channel c
             LEFT JOIN programme p ON p.epg_key = c.epg_key AND p.start =
                 (SELECT MAX(start) FROM programme WHERE epg_key = c.epg_key AND start <= $nowSec)
@@ -79,6 +152,7 @@ class ChannelRepository(private val database: FluideDatabase, private val cipher
                     nowStartSec = if (onAir) c.getLong(7) else 0,
                     nowStopSec = if (onAir) stop else 0,
                     favorite = c.getInt(9) != 0,
+                    catchupDays = c.getInt(10),
                 )
             }
         }
@@ -198,6 +272,9 @@ class ChannelRepository(private val database: FluideDatabase, private val cipher
             drmScheme = c.stringOrNull(12),
             drmLicenseUrl = if (c.isNull(13)) null else cipher.decryptOrNull(c.getBlob(13)),
             maxConnections = c.getInt(15),
+            catchupMode = c.stringOrNull(16),
+            catchupDays = c.intOrNull(17) ?: 0,
+            catchupSource = c.stringOrNull(18),
         )
     }
 
@@ -215,12 +292,22 @@ class ChannelRepository(private val database: FluideDatabase, private val cipher
         }
 
     companion object {
+        private const val RECENT_LIMIT = 50
+
+        /** SQL condition excluding [groups] (and its arguments); empty when there is nothing to exclude. */
+        fun exclusion(column: String, groups: Set<String>): Pair<String, Array<String>> {
+            if (groups.isEmpty()) return "" to emptyArray()
+            val marks = groups.joinToString(",") { "?" }
+            return " AND ($column IS NULL OR $column NOT IN ($marks))" to groups.toTypedArray()
+        }
+
         /** epg_key of channels without tvg-id: "n:" + normalised name. */
         const val NAME_KEY_PREFIX = "n:"
 
         private const val PLAYABLE_COLUMNS =
             "c.id, c.source_id, c.number, c.name, c.name_norm, c.grp, c.logo, c.url, c.epg_key, c.kind, " +
-                "c.user_agent, c.referrer, c.drm_scheme, c.drm_license, s.user_agent, s.max_connections"
+                "c.user_agent, c.referrer, c.drm_scheme, c.drm_license, s.user_agent, s.max_connections, " +
+                "c.catchup_mode, c.catchup_days, c.catchup_source"
 
         private val QUALITY_TAGS = setOf(
             "hd", "fhd", "uhd", "sd", "hq", "lq", "4k", "8k", "hevc", "h265", "h264", "avc", "1080p", "1080i",

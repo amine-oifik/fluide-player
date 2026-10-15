@@ -116,6 +116,11 @@ class PlaybackController(
 
     val currentChannel: PlayableChannel? get() = session?.channel
 
+    /** Position in the current video (movie, episode, recording), 0 for live channels. */
+    val positionMs: Long get() = built?.player?.takeIf { session?.channel?.vod == true }?.currentPosition ?: session?.lastPositionMs ?: 0
+
+    val durationMs: Long get() = built?.player?.duration?.takeIf { it != C.TIME_UNSET && it > 0 } ?: session?.lastDurationMs ?: 0
+
     // ------------------------------------------------------------------ public API
 
     /** The activity is visible: (re)create the player and resume the current channel. */
@@ -134,6 +139,13 @@ class PlaybackController(
     fun onStop() {
         if (!started) return
         started = false
+        session?.let { s ->
+            val player = built?.player
+            if (s.channel.vod && player != null) {
+                s.lastPositionMs = player.currentPosition
+                s.startPositionMs = player.currentPosition
+            }
+        }
         pending?.cancel()
         watchdog?.cancel()
         watchdog = null
@@ -163,15 +175,21 @@ class PlaybackController(
         pressure.playing = false
     }
 
-    fun play(channel: PlayableChannel) {
+    /** Plays [channel]; a video starts at [startPositionMs] (resume point). */
+    fun play(channel: PlayableChannel, startPositionMs: Long = 0) {
         pending?.cancel()
         val now = SystemClock.elapsedRealtime()
         val host = hostOf(channel.url)
         val s = Session(++sessionCounter, channel, host, health.profileFor(host, System.currentTimeMillis()), now)
+        s.startPositionMs = startPositionMs.coerceAtLeast(0)
+        s.lastPositionMs = s.startPositionMs
         session = s
         ladder.reset()
         frameRate.reset()
         uiState.value = PlaybackUiState(channelId = channel.id, phase = PlaybackPhase.STARTING, waitingSinceMs = now)
+        if (started) startSession(s, keepPosition = false)
+        // Videos have no backup channel.
+        if (channel.vod) return
         // Backup URLs are looked up in the background, ready before they could ever be needed.
         scope.launch {
             val alternates = withContext(Dispatchers.IO) {
@@ -179,7 +197,26 @@ class PlaybackController(
             }
             if (session === s) s.alternates = alternates
         }
-        if (started) startSession(s, keepPosition = false)
+    }
+
+    /** Seeks the current video; ignored on live channels. */
+    fun seekTo(positionMs: Long) {
+        val player = built?.player ?: return
+        val s = session ?: return
+        if (!s.channel.vod) return
+        val duration = player.duration
+        val target = if (duration != C.TIME_UNSET && duration > 0) positionMs.coerceIn(0, duration - 1_000) else positionMs.coerceAtLeast(0)
+        player.seekTo(target)
+        s.lastPositionMs = target
+        if (uiState.value.phase == PlaybackPhase.ENDED) {
+            player.play()
+            uiState.update { it.copy(phase = PlaybackPhase.BUFFERING) }
+        }
+    }
+
+    fun seekBy(deltaMs: Long) {
+        val player = built?.player ?: return
+        seekTo(player.currentPosition + deltaMs)
     }
 
     /** "OK" on an error screen. */
@@ -190,6 +227,7 @@ class PlaybackController(
         s.accessDeniedRetried = false
         s.stream = s.channel
         s.alternateIndex = 0
+        if (s.channel.vod) s.startPositionMs = s.lastPositionMs
         uiState.update { it.copy(phase = PlaybackPhase.STARTING, error = null, waitingSinceMs = SystemClock.elapsedRealtime()) }
         if (started) startSession(s, keepPosition = false)
     }
@@ -295,14 +333,24 @@ class PlaybackController(
         var speed = 1f
         var requestedSpeed = 1f
         var speedSupported = true
+
+        /** Videos: where to start (resume point), and the last position seen (recoveries restart there). */
+        var startPositionMs = 0L
+        var lastPositionMs = 0L
+        var lastDurationMs = 0L
     }
 
     private fun startSession(s: Session, keepPosition: Boolean) {
         pending?.cancel()
         val previous = built?.player
-        val resumeAtMs = if (keepPosition && previous != null && !previous.isCurrentMediaItemLive &&
-            previous.duration != C.TIME_UNSET
-        ) previous.currentPosition else C.TIME_UNSET
+        val resumeAtMs = when {
+            keepPosition && previous != null && !previous.isCurrentMediaItemLive && previous.duration != C.TIME_UNSET ->
+                previous.currentPosition
+            // A recovery that released the decoder, or the app coming back: the video continues where it was.
+            s.channel.vod && keepPosition && s.lastPositionMs > 0 -> s.lastPositionMs
+            s.channel.vod && s.startPositionMs > 0 -> s.startPositionMs
+            else -> C.TIME_UNSET
+        }
 
         val player = ensurePlayer(s.profile)
         val b = built ?: return
@@ -414,6 +462,10 @@ class PlaybackController(
         pressure.bufferedMs = buffered
         pressure.playing = player.isPlaying
         frames.sample(player)
+        if (s.channel.vod && player.playbackState != Player.STATE_IDLE) {
+            s.lastPositionMs = player.currentPosition
+            player.duration.takeIf { it != C.TIME_UNSET && it > 0 }?.let { s.lastDurationMs = it }
+        }
 
         val sample = PlaybackSample(
             nowMs = now,
@@ -685,10 +737,13 @@ class PlaybackController(
                 // Live channels never end: the server closed the connection (many do periodically).
                 // Reopen through the ladder: immediate the first time, escalating with backoff if the
                 // server keeps closing at once (no reconnection loop hammering it).
-                if (s.isLive) {
+                if (s.isLive && !s.channel.vod) {
                     execute(s, ladder.onSignal(StallSignal.NETWORK_SILENT, now))
                 } else {
-                    uiState.update { it.copy(phase = PlaybackPhase.IDLE) }
+                    s.lastPositionMs = player.duration.takeIf { it != C.TIME_UNSET && it > 0 } ?: player.currentPosition
+                    s.lastDurationMs = s.lastPositionMs
+                    s.startPositionMs = 0
+                    uiState.update { it.copy(phase = PlaybackPhase.ENDED, waitingSinceMs = 0) }
                 }
             }
             else -> Unit

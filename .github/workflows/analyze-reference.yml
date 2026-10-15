@@ -6,9 +6,6 @@
 name: Analyze reference APK
 
 on:
-  push:
-    branches: [claude/fluide-ibo-features]
-    paths: [.github/workflows/analyze-reference.yml]
   workflow_dispatch:
 
 permissions:

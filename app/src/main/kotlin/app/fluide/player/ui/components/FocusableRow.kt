@@ -35,6 +35,7 @@ fun FocusableRow(
     onLongClick: (() -> Unit)? = null,
     focusRequester: FocusRequester? = null,
     selected: Boolean = false,
+    onFocused: (() -> Unit)? = null,
     content: @Composable RowScope.(focused: Boolean) -> Unit,
 ) {
     var focused by remember { mutableStateOf(false) }
@@ -48,7 +49,10 @@ fun FocusableRow(
     Row(
         modifier = modifier
             .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)
-            .onFocusChanged { focused = it.isFocused }
+            .onFocusChanged {
+                if (it.isFocused && !focused) onFocused?.invoke()
+                focused = it.isFocused
+            }
             .clip(shape)
             .background(background, shape)
             .border(2.dp, if (focused) colors.primary else Color.Transparent, shape)

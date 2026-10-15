@@ -2,7 +2,7 @@ package app.fluide.player.playback
 
 import app.fluide.core.playback.StabilityTier
 
-enum class PlaybackPhase { IDLE, STARTING, PLAYING, BUFFERING, PAUSED, ERROR }
+enum class PlaybackPhase { IDLE, STARTING, PLAYING, BUFFERING, PAUSED, ERROR, ENDED }
 
 enum class ErrorKind { SIGNAL_LOST, ACCESS_DENIED, NOT_FOUND, HTTP, DECODER, DRM, FORMAT, NETWORK }
 

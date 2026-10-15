@@ -28,13 +28,13 @@
     <string name="guide_search_hint">Rechercher une chaîne</string>
     <string name="guide_empty">Aucune chaîne</string>
     <string name="guide_no_group">Sans catégorie</string>
-    <string name="guide_sources">Sources et réglages</string>
+    <string name="guide_sources">Playlists et réglages</string>
     <string name="guide_favorite_hint">Menu ou appui long : favori</string>
 
     <!-- Sources -->
-    <string name="sources_title">Sources</string>
-    <string name="sources_empty">Aucune source. Ajoutez la playlist M3U fournie par votre fournisseur de services.</string>
-    <string name="sources_add_title">Ajouter une source</string>
+    <string name="sources_title">Playlists</string>
+    <string name="sources_empty">Aucune playlist. Ajoutez le compte Xtream Codes ou la playlist M3U fournie par votre fournisseur de services.</string>
+    <string name="sources_add_title">Ajouter une playlist</string>
     <string name="source_name">Nom</string>
     <string name="source_default_name">Ma playlist</string>
     <string name="source_url">URL de la playlist (M3U)</string>
@@ -65,10 +65,158 @@
 
     <!-- Settings -->
     <string name="settings_title">Réglages</string>
-    <string name="setting_resume">Reprendre la dernière chaîne au démarrage</string>
+    <string name="setting_resume">Démarrer sur la dernière chaîne (au lieu de l\'accueil)</string>
     <string name="setting_afr">Fréquence d\'affichage automatique (AFR)</string>
     <string name="setting_tunneling">Lecture tunnelisée (si l\'appareil la gère)</string>
     <string name="setting_passthrough">Son multicanal en passthrough (HDMI)</string>
-    <string name="setting_stats">Statistiques de lecture (touche Menu)</string>
+    <string name="setting_stats">Statistiques de lecture (informations média)</string>
     <string name="close">Fermer</string>
+    <!-- Home -->
+    <string name="home_live">TV en direct</string>
+    <string name="home_movies">Films</string>
+    <string name="home_series">Séries</string>
+    <string name="home_catchup">Replay</string>
+    <string name="home_playlists">Playlists</string>
+    <string name="home_settings">Réglages</string>
+    <string name="home_refresh">Actualiser</string>
+    <string name="home_exit">Quitter</string>
+    <string name="home_no_channels">Aucune chaîne dans cette playlist</string>
+    <string name="home_no_movies">Aucun film dans cette playlist</string>
+    <string name="home_no_series">Aucune série dans cette playlist</string>
+    <string name="home_refreshing">Actualisation de la playlist…</string>
+    <string name="home_playlist">Playlist : %1$s</string>
+    <string name="home_expires">Expire le %1$s</string>
+    <string name="home_expires_soon">Votre abonnement expire dans %1$d jours. Contactez votre fournisseur pour le prolonger.</string>
+    <string name="home_unlimited">Sans date d\'expiration</string>
+    <string name="home_status">Statut : %1$s</string>
+    <string name="home_connections">Connexions : %1$d / %2$d</string>
+    <string name="home_counts">%1$d chaînes · %2$d films · %3$d séries</string>
+    <string name="exit_title">Quitter Fluide Player ?</string>
+    <string name="yes">Oui</string>
+    <string name="no">Non</string>
+
+    <!-- Live TV -->
+    <string name="guide_recent">Récents</string>
+    <string name="guide_catchup">Replay</string>
+    <string name="live_fullscreen_hint">OK : plein écran · Menu : favori</string>
+    <string name="live_epg">Guide TV</string>
+    <string name="live_replay">Replay (%1$d j)</string>
+    <string name="live_select_channel">Choisissez une chaîne</string>
+    <string name="epg_title">Guide des programmes</string>
+    <string name="epg_today">Aujourd\'hui</string>
+    <string name="epg_yesterday">Hier</string>
+    <string name="epg_tomorrow">Demain</string>
+    <string name="epg_empty">Pas de programme ce jour-là</string>
+    <string name="epg_replay_badge">REPLAY</string>
+    <string name="epg_live_badge">EN DIRECT</string>
+    <string name="epg_future">Ce programme n\'a pas encore commencé</string>
+    <string name="epg_no_recording">Pas d\'enregistrement disponible pour ce programme</string>
+
+    <!-- Movies and series -->
+    <string name="media_all">Tout</string>
+    <string name="media_continue">Continuer à regarder</string>
+    <string name="media_favorites">Favoris</string>
+    <string name="media_recent">Ajouts récents</string>
+    <string name="media_no_group">Sans catégorie</string>
+    <string name="media_search_movies">Rechercher un film</string>
+    <string name="media_search_series">Rechercher une série</string>
+    <string name="media_empty">Aucun élément</string>
+    <string name="media_sort">Tri : %1$s</string>
+    <string name="sort_default">par défaut</string>
+    <string name="sort_added">ajouts récents</string>
+    <string name="sort_name_asc">A → Z</string>
+    <string name="sort_name_desc">Z → A</string>
+    <string name="sort_rating">note</string>
+    <string name="sort_year">année</string>
+    <string name="details_play">Lire</string>
+    <string name="details_resume">Reprendre à %1$s</string>
+    <string name="details_restart">Depuis le début</string>
+    <string name="details_favorite_add">Ajouter aux favoris</string>
+    <string name="details_favorite_remove">Retirer des favoris</string>
+    <string name="details_trailer">Bande-annonce</string>
+    <string name="details_external">Ouvrir avec…</string>
+    <string name="details_director">Réalisation</string>
+    <string name="details_cast">Avec</string>
+    <string name="details_genre">Genre</string>
+    <string name="details_released">Sortie</string>
+    <string name="details_duration">Durée</string>
+    <string name="details_country">Pays</string>
+    <string name="details_season">Saison %1$d</string>
+    <string name="details_episodes">Épisodes</string>
+    <string name="details_continue">Continuer S%1$d E%2$d</string>
+    <string name="details_no_episodes">Aucun épisode</string>
+    <string name="details_loading">Chargement des informations…</string>
+    <string name="up_next">Épisode suivant dans %1$d s</string>
+    <string name="up_next_now">OK : lancer maintenant</string>
+
+    <!-- Player -->
+    <string name="options_title">Options de lecture</string>
+    <string name="options_audio">Piste audio</string>
+    <string name="options_subtitles">Sous-titres</string>
+    <string name="options_subtitles_off">Désactivés</string>
+    <string name="options_none">Aucune piste</string>
+    <string name="options_aspect">Format d\'image</string>
+    <string name="aspect_fit">Adapter</string>
+    <string name="aspect_fill">Étirer</string>
+    <string name="aspect_zoom">Zoom</string>
+    <string name="options_stats">Informations média</string>
+    <string name="options_external">Ouvrir dans un autre lecteur</string>
+    <string name="no_external_player">Aucune autre application ne peut lire ce flux</string>
+    <string name="next_episode">Épisode suivant</string>
+
+    <!-- Parental control -->
+    <string name="pin_title">Code parental</string>
+    <string name="pin_new_title">Nouveau code parental (4 chiffres)</string>
+    <string name="pin_wrong">Code incorrect</string>
+    <string name="pin_invalid">Saisissez 4 chiffres</string>
+    <string name="pin_hint">Code par défaut : 0000</string>
+    <string name="pin_changed">Code parental modifié</string>
+    <string name="pin_delete">Effacer</string>
+
+    <!-- Playlists -->
+    <string name="source_tab_xtream">Xtream Codes</string>
+    <string name="source_tab_m3u">URL M3U</string>
+    <string name="source_tab_file">Fichier</string>
+    <string name="source_server">URL du serveur (http://hôte:port)</string>
+    <string name="source_username">Nom d\'utilisateur</string>
+    <string name="source_password">Mot de passe</string>
+    <string name="source_format">Format des chaînes : %1$s</string>
+    <string name="source_login">Se connecter</string>
+    <string name="source_checking">Vérification du compte…</string>
+    <string name="source_added">Playlist ajoutée : import en cours</string>
+    <string name="source_add_error">Connexion refusée : %1$s</string>
+    <string name="source_type_xtream">Xtream Codes</string>
+    <string name="source_type_m3u">Playlist M3U</string>
+    <string name="source_type_file">Fichier M3U</string>
+    <string name="source_m3u_xtream_hint">Un lien « get.php?username=…&amp;password=… » est ajouté comme compte Xtream (films et séries détaillés).</string>
+    <string name="import_done_full">Import terminé : %1$d chaînes, %2$d films, %3$d séries</string>
+
+    <!-- Settings -->
+    <string name="settings_general">Général</string>
+    <string name="settings_player">Lecteur</string>
+    <string name="settings_parental">Contrôle parental</string>
+    <string name="setting_parental">Verrouiller les catégories pour adultes</string>
+    <string name="setting_change_pin">Changer le code parental</string>
+    <string name="setting_categories_live">Gérer les catégories TV</string>
+    <string name="setting_categories_movies">Gérer les catégories de films</string>
+    <string name="setting_categories_series">Gérer les catégories de séries</string>
+    <string name="setting_auto_next">Enchaîner les épisodes automatiquement</string>
+    <string name="setting_aspect">Format d\'image : %1$s</string>
+    <string name="setting_boot">Lancer au démarrage de l\'appareil</string>
+    <string name="setting_clock">Horloge 24 h</string>
+    <string name="settings_data">Données</string>
+    <string name="settings_clear_history">Effacer l\'historique (reprises, chaînes récentes)</string>
+    <string name="settings_clear_cache">Vider le cache des images</string>
+    <string name="settings_history_cleared">Historique effacé</string>
+    <string name="settings_cache_cleared">Cache vidé</string>
+    <string name="settings_about">À propos</string>
+    <string name="settings_version">Version %1$s</string>
+    <string name="categories_title">Catégories : %1$s</string>
+    <string name="categories_hint">OK : visible → verrouillée → masquée</string>
+    <string name="category_visible">Visible</string>
+    <string name="category_locked">Verrouillée</string>
+    <string name="category_hidden">Masquée</string>
+    <string name="section_live">TV en direct</string>
+    <string name="section_movies">Films</string>
+    <string name="section_series">Séries</string>
 </resources>

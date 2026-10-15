@@ -8,6 +8,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
+import app.fluide.player.AspectMode
 
 /**
  * Media3 PlayerView inside Compose. SurfaceView (the default) for the hardware video path; the
@@ -18,7 +19,7 @@ import androidx.media3.ui.PlayerView
  */
 @OptIn(UnstableApi::class)
 @Composable
-fun PlayerSurface(player: Player?, modifier: Modifier = Modifier) {
+fun PlayerSurface(player: Player?, modifier: Modifier = Modifier, aspect: AspectMode = AspectMode.FIT) {
     AndroidView(
         factory = { context ->
             PlayerView(context).apply {
@@ -35,6 +36,14 @@ fun PlayerSurface(player: Player?, modifier: Modifier = Modifier) {
         },
         modifier = modifier,
         onRelease = { view -> view.player = null },
-        update = { view -> if (view.player !== player) view.player = player },
+        update = { view ->
+            if (view.player !== player) view.player = player
+            val mode = when (aspect) {
+                AspectMode.FIT -> AspectRatioFrameLayout.RESIZE_MODE_FIT
+                AspectMode.FILL -> AspectRatioFrameLayout.RESIZE_MODE_FILL
+                AspectMode.ZOOM -> AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+            }
+            if (view.resizeMode != mode) view.resizeMode = mode
+        },
     )
 }

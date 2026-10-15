@@ -242,7 +242,11 @@ fun ToastHost(toast: Toast?, onShown: (Toast) -> Unit, modifier: Modifier = Modi
         delay(2_500)
         onShown(toast)
     }
-    val text = if (toast.arg != null) stringResource(toast.resId, toast.arg) else stringResource(toast.resId)
+    val text = when {
+        toast.text != null -> stringResource(toast.resId, toast.text)
+        toast.arg != null -> stringResource(toast.resId, toast.arg)
+        else -> stringResource(toast.resId)
+    }
     Pill(text, modifier)
 }
 

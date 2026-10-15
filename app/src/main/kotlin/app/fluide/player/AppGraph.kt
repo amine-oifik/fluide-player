@@ -2,6 +2,7 @@ package app.fluide.player
 
 import android.app.Application
 import app.fluide.player.data.ChannelRepository
+import app.fluide.player.data.MediaRepository
 import app.fluide.player.data.SourceManager
 import app.fluide.player.data.db.FluideDatabase
 import app.fluide.player.data.secure.UrlCipher
@@ -22,6 +23,7 @@ class AppGraph(val app: Application) {
     val cipher: UrlCipher by lazy { UrlCipher(app) }
     val database: FluideDatabase by lazy { FluideDatabase(app) }
     val channels: ChannelRepository by lazy { ChannelRepository(database, cipher) }
+    val media: MediaRepository by lazy { MediaRepository(database, cipher) }
     val health: SourceHealthStore by lazy { SourceHealthStore(app) }
     val pressure = PlaybackPressure()
     val sources: SourceManager by lazy { SourceManager(app, database, cipher, http, device, pressure) }

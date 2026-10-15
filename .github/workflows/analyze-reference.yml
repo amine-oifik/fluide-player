@@ -1,0 +1,104 @@
+# Static feature inventory of a reference IPTV player APK, made with REA (https://github.com/morluto/rea)
+# on GitHub's runner (the download host is not reachable from the development environment).
+# Nothing is executed from the APK: REA, JADX and apktool only read it. The report lists manifest
+# components, UI string labels and server endpoints, to compare features. The APK itself is never
+# committed and the artifact expires after one day.
+name: Analyze reference APK
+
+on:
+  push:
+    branches: [claude/fluide-ibo-features]
+    paths: [.github/workflows/analyze-reference.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      APK_URL: https://iboplayer.com/app_downloads/ibop.apk
+    steps:
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+
+      - name: Download the reference APK
+        run: |
+          mkdir -p work && cd work
+          curl -fL --retry 3 --retry-delay 5 -A "Mozilla/5.0 (Linux; Android 12)" -o ref.apk "$APK_URL"
+          ls -l ref.apk
+          sha256sum ref.apk
+          unzip -l ref.apk | tail -n 3
+
+      - name: Install REA, JADX headless and apktool
+        run: |
+          npm install --global rea-agents
+          rea --version
+          mkdir -p "$HOME/tools" && cd "$HOME/tools"
+          curl -fL -o jadx-headless-mcp-0.7.1-all.jar https://github.com/1013503897/jadx-headless-mcp/releases/download/v0.7.1/jadx-headless-mcp-0.7.1-all.jar
+          echo '6e5eacf500b64292bfb73c49797c1958f6ee44646e43e868039ae7feb573ff75  jadx-headless-mcp-0.7.1-all.jar' | sha256sum -c -
+          curl -fL -o apktool.jar https://github.com/iBotPeaches/Apktool/releases/download/v2.10.0/apktool_2.10.0.jar
+          printf '#!/bin/sh\nexec java -jar "%s/apktool.jar" "$@"\n' "$HOME/tools" > apktool
+          chmod +x apktool
+          echo "REA_JADX_MCP_JAR=$HOME/tools/jadx-headless-mcp-0.7.1-all.jar" >> "$GITHUB_ENV"
+          echo "REA_APKTOOL_COMMAND=$HOME/tools/apktool" >> "$GITHUB_ENV"
+
+      - name: REA analysis
+        working-directory: work
+        run: |
+          set +e
+          rea inspect-apktool-client > apktool-client.json 2>&1
+          rea inspect-android-package ref.apk > package.json 2>&1
+          rea decode-android-resources ref.apk > resources.json 2>&1
+          rea decode-android-resources ref.apk --locale fr > resources-fr.json 2>&1
+          rea search-android-classes ref.apk "" > classes.json 2>&1
+          rea identify-flutter-build ref.apk > flutter.json 2>&1
+          ls -l *.json
+
+      - name: Extra static inventory (aapt2, dex strings)
+        working-directory: work
+        run: |
+          set +e
+          AAPT2=$(ls -d "$ANDROID_HOME"/build-tools/*/aapt2 | sort -V | tail -n 1)
+          "$AAPT2" dump badging ref.apk > badging.txt 2>&1
+          "$AAPT2" dump resources ref.apk > resources-aapt2.txt 2>&1
+          mkdir -p dex && unzip -o -q ref.apk 'classes*.dex' -d dex
+          cat dex/*.dex | strings -n 5 > dex-strings.txt
+          grep -E '^L[a-zA-Z0-9_/$]+;$' dex-strings.txt | sort -u > dex-classes.txt
+          wc -l dex-strings.txt dex-classes.txt resources-aapt2.txt
+
+      - name: Report
+        working-directory: work
+        run: |
+          section() { echo; echo "=================== $1 ==================="; }
+          section "BADGING"; head -n 80 badging.txt
+          section "REA PACKAGE"; jq . package.json 2>/dev/null | head -n 600 || head -c 60000 package.json
+          section "REA RESOURCES"; jq . resources.json 2>/dev/null | head -n 2500 || head -c 150000 resources.json
+          section "REA RESOURCES FR"; jq . resources-fr.json 2>/dev/null | head -n 1500 || head -c 80000 resources-fr.json
+          section "REA FLUTTER"; head -c 4000 flutter.json
+          section "APP CLASSES (outside common libraries)"
+          grep -vE '^L(android|androidx|kotlin|kotlinx|java|javax|com/google|okhttp3|okio|retrofit2|com/squareup|org/|io/reactivex|dagger|com/bumptech|com/facebook|com/fasterxml|com/airbnb|j\$|io/ktor|net/)' dex-classes.txt \
+            | sed -E 's#^L##; s#;$##' | grep -vE '\$[0-9]+$' | head -n 1500
+          section "LAYOUTS / DRAWABLES"; grep -E 'resource 0x[0-9a-f]+ (layout|menu|navigation|xml)/' resources-aapt2.txt | head -n 400
+          section "ENDPOINTS AND API WORDS IN DEX"
+          grep -iE 'player_api|xmltv|get\.php|action=|get_live|get_vod|get_series|get_short_epg|timeshift|catchup|/api/|\.php|mac_address|device_key|playlist|parental|subtitle|epg' dex-strings.txt \
+            | grep -vE '^L[a-zA-Z/]' | sort -u | head -n 600
+          section "HOSTS"
+          grep -oE 'https?://[a-zA-Z0-9._-]+' dex-strings.txt | sort | uniq -c | sort -rn | head -n 80
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: reference-analysis
+          retention-days: 1
+          path: |
+            work/*.json
+            work/*.txt

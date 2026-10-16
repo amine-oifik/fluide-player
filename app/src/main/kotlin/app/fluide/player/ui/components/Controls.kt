@@ -1,6 +1,7 @@
 package app.fluide.player.ui.components
 
 import android.text.format.DateFormat
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -29,11 +30,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
@@ -41,11 +46,13 @@ import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.zIndex
 import app.fluide.player.R
 import app.fluide.player.ui.PinRequest
 import kotlinx.coroutines.delay
@@ -53,13 +60,22 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-val PanelColor = Color(0xE60B1020)
+/** Dark navy glass for the panels drawn over the video. */
+val PanelColor = Color(0xE80A1028)
 
-/** Dark blue gradient of the full screens (home, movies, series...). */
-val ScreenBrush = Brush.linearGradient(listOf(Color(0xFF0A1330), Color(0xFF070B1C), Color(0xFF140A2A)))
+/** Background gradient of the full screens (home, movies, series...): navy to very dark violet, diagonal. */
+val ScreenBrush = Brush.linearGradient(listOf(FluideColors.Navy, FluideColors.NavyLight, FluideColors.Night))
+
+private val ButtonShape = RoundedCornerShape(24.dp)
+private val GlassFill = SolidColor(FluideColors.Glass)
+private val DisabledFill = SolidColor(Color(0x0AFFFFFF))
+private val PrimaryFill = Brush.linearGradient(listOf(FluideColors.Blue.copy(alpha = 0.55f), FluideColors.Cyan.copy(alpha = 0.32f)))
+private val DialogShape = RoundedCornerShape(24.dp)
+private val DialogBrush = Brush.verticalGradient(listOf(Color(0xFF161D40), Color(0xFF0D1230)))
 
 /**
- * A button for the remote (clear focus highlight, OK and long OK) and for touch.
+ * A button for the remote (clear focus highlight, OK and long OK) and for touch: a glass pill,
+ * filled with the blue to cyan gradient and slightly enlarged while focused.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -74,24 +90,39 @@ fun TvButton(
     onLongClick: (() -> Unit)? = null,
 ) {
     var focused by remember { mutableStateOf(false) }
-    val colors = MaterialTheme.colorScheme
-    val shape = RoundedCornerShape(10.dp)
-    val background = when {
-        !enabled -> colors.surfaceVariant.copy(alpha = 0.4f)
-        focused -> colors.primary
-        primary -> colors.primary.copy(alpha = 0.35f)
-        else -> colors.surfaceVariant
+    val active = focused && enabled
+    val scale by animateFloatAsState(if (active) 1.06f else 1f, label = "tvButton")
+    val fill = when {
+        !enabled -> DisabledFill
+        active -> FluideGradient
+        primary -> PrimaryFill
+        else -> GlassFill
     }
-    val content = if (!enabled) colors.onSurfaceVariant.copy(alpha = 0.5f) else Color.White
+    val borderColor = when {
+        active -> Color.White
+        primary && enabled -> FluideColors.Cyan.copy(alpha = 0.45f)
+        else -> FluideColors.GlassBorder
+    }
+    val content = if (!enabled) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f) else Color.White
     Row(
         modifier = modifier
             .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)
             .onFocusChanged { focused = it.isFocused }
-            .clip(shape)
-            .background(background, shape)
-            .border(2.dp, if (focused) Color.White.copy(alpha = 0.8f) else Color.Transparent, shape)
+            .zIndex(if (active) 1f else 0f)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+                // Soft blue / cyan glow under the focused button (colored shadows from Android 9).
+                shadowElevation = if (active) 12.dp.toPx() else 0f
+                ambientShadowColor = FluideColors.Cyan
+                spotShadowColor = FluideColors.Blue
+                shape = ButtonShape
+                clip = true
+            }
+            .background(fill, ButtonShape)
+            .border(if (active) 2.dp else 1.dp, borderColor, ButtonShape)
             .combinedClickable(enabled = enabled, onLongClick = onLongClick, onClick = onClick)
-            .padding(horizontal = 18.dp, vertical = 10.dp),
+            .padding(horizontal = 20.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
     ) {
@@ -99,7 +130,14 @@ fun TvButton(
             AppIcon(glyph, content, size = 20.dp)
             Spacer(Modifier.width(10.dp))
         }
-        Text(text, color = content, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(
+            text,
+            color = content,
+            // Same weight focused or not: the button keeps its width when the focus moves.
+            fontWeight = if (primary) FontWeight.Bold else FontWeight.SemiBold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 
@@ -120,7 +158,7 @@ fun Clock(clock24h: Boolean, modifier: Modifier = Modifier, showDate: Boolean = 
             .replaceFirstChar { it.titlecase(locale) }
     }
     Column(modifier, horizontalAlignment = Alignment.End) {
-        Text(time, fontSize = 30.sp, fontWeight = FontWeight.Bold, color = Color.White)
+        Text(time, fontSize = 30.sp, fontWeight = FontWeight.ExtraBold, color = Color.White, letterSpacing = 0.5.sp)
         if (showDate) Text(date, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
@@ -132,12 +170,14 @@ fun ConfirmDialog(title: String, onConfirm: () -> Unit, onDismiss: () -> Unit) {
     Dialog(onDismissRequest = onDismiss) {
         Column(
             Modifier
-                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(16.dp))
-                .padding(28.dp),
+                .background(DialogBrush, DialogShape)
+                .border(1.dp, FluideColors.GlassBorder, DialogShape)
+                .padding(horizontal = 32.dp, vertical = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
-            Text(title, style = MaterialTheme.typography.titleLarge)
+            AccentBar()
+            Text(title, style = MaterialTheme.typography.titleLarge, color = Color.White, textAlign = TextAlign.Center)
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 TvButton(stringResource(R.string.yes), onConfirm, Modifier.width(120.dp), primary = true, focusRequester = confirmFocus)
                 TvButton(stringResource(R.string.no), onDismiss, Modifier.width(120.dp))
@@ -163,7 +203,8 @@ fun PinDialog(request: PinRequest, onSubmit: (String) -> Unit, onDismiss: () -> 
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Column(
             Modifier
-                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(18.dp))
+                .background(DialogBrush, DialogShape)
+                .border(1.dp, FluideColors.GlassBorder, DialogShape)
                 .onPreviewKeyEvent { event ->
                     if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
                     val digit = digitOf(event.key)
@@ -179,21 +220,28 @@ fun PinDialog(request: PinRequest, onSubmit: (String) -> Unit, onDismiss: () -> 
                         else -> false
                     }
                 }
-                .padding(28.dp),
+                .padding(horizontal = 32.dp, vertical = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Text(
-                stringResource(if (request.changing) R.string.pin_new_title else R.string.pin_title),
-                style = MaterialTheme.typography.titleLarge,
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                AppIcon(Glyph.LOCK, FluideColors.Cyan, size = 22.dp)
+                Spacer(Modifier.width(12.dp))
+                Text(
+                    stringResource(if (request.changing) R.string.pin_new_title else R.string.pin_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    color = Color.White,
+                )
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 repeat(4) { i ->
+                    val filled = i < digits.length
                     Box(
                         Modifier
-                            .size(22.dp)
+                            .size(20.dp)
                             .clip(CircleShape)
-                            .background(if (i < digits.length) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant),
+                            .background(if (filled) FluideGradient else SolidColor(FluideColors.Glass), CircleShape)
+                            .border(1.5.dp, if (filled) FluideColors.Cyan else Color.White.copy(alpha = 0.25f), CircleShape),
                     )
                 }
             }
@@ -208,7 +256,7 @@ fun PinDialog(request: PinRequest, onSubmit: (String) -> Unit, onDismiss: () -> 
             }
             val rows = listOf("123", "456", "789")
             for (row in rows) {
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     for (c in row) {
                         TvButton(
                             c.toString(),
@@ -219,7 +267,7 @@ fun PinDialog(request: PinRequest, onSubmit: (String) -> Unit, onDismiss: () -> 
                     }
                 }
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 TvButton("⌫", onClick = { digits = digits.dropLast(1) }, modifier = Modifier.width(72.dp))
                 TvButton("0", onClick = { add('0') }, modifier = Modifier.width(72.dp))
                 TvButton("✕", onClick = onDismiss, modifier = Modifier.width(72.dp))
@@ -231,6 +279,17 @@ fun PinDialog(request: PinRequest, onSubmit: (String) -> Unit, onDismiss: () -> 
         digits = ""
         runCatching { firstKey.requestFocus() }
     }
+}
+
+/** Short blue to cyan bar on top of the dialogs. */
+@Composable
+private fun AccentBar() {
+    Box(
+        Modifier
+            .width(44.dp)
+            .height(4.dp)
+            .background(FluideGradient, CircleShape),
+    )
 }
 
 private fun digitOf(key: Key): Char? = when (key) {
@@ -264,8 +323,32 @@ fun formatClock(ms: Long): String {
     return if (h > 0) "$h:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}" else "$m:${s.toString().padStart(2, '0')}"
 }
 
-/** Full-screen gradient background with the usual padding. */
+/**
+ * Full-screen background: the [ScreenBrush] gradient with two soft glows (blue at the top left,
+ * violet at the bottom right).
+ */
 @Composable
 fun ScreenSurface(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
-    Box(modifier.fillMaxSize().background(ScreenBrush)) { content() }
+    Box(
+        modifier
+            .fillMaxSize()
+            .drawWithCache {
+                val radius = size.maxDimension.coerceAtLeast(1f)
+                val blueGlow = Brush.radialGradient(
+                    listOf(FluideColors.Blue.copy(alpha = 0.14f), Color.Transparent),
+                    center = Offset(size.width * 0.1f, 0f),
+                    radius = radius * 0.55f,
+                )
+                val violetGlow = Brush.radialGradient(
+                    listOf(FluideColors.Violet.copy(alpha = 0.12f), Color.Transparent),
+                    center = Offset(size.width, size.height),
+                    radius = radius * 0.5f,
+                )
+                onDrawBehind {
+                    drawRect(ScreenBrush)
+                    drawRect(blueGlow)
+                    drawRect(violetGlow)
+                }
+            },
+    ) { content() }
 }

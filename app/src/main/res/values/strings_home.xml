@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Home screen (ui/home/HomeScreen.kt). Other home_* strings live in strings.xml. -->
+    <string name="home_search">Rechercher</string>
+    <string name="home_no_playlist">Aucune playlist active</string>
+    <string name="home_pill_expires">Expire dans %1$d j</string>
+
+    <string name="home_greeting_morning">Bonjour</string>
+    <string name="home_greeting_afternoon">Bon après-midi</string>
+    <string name="home_greeting_evening">Bonsoir</string>
+    <string name="home_welcome_title">Bienvenue sur Fluide Player</string>
+    <string name="home_welcome_text">Vos chaînes, vos films et vos séries réunis au même endroit. Choisissez une rubrique pour commencer.</string>
+    <string name="home_welcome_no_source">Ajoutez votre compte Xtream Codes ou votre playlist M3U pour retrouver ici vos chaînes, vos films et vos séries.</string>
+    <string name="home_add_playlist">Ajouter une playlist</string>
+
+    <string name="home_hero_resume">Reprendre</string>
+    <string name="home_hero_watch">Regarder</string>
+    <string name="home_hero_tag_resume">Reprendre la lecture</string>
+    <string name="home_hero_tag_new">Nouveauté</string>
+    <string name="home_hero_watched">Vu à %1$d %%</string>
+    <string name="home_hero_all_movies">Tous les films</string>
+
+    <string name="home_tile_replay_hint">Revoir les programmes passés</string>
+    <plurals name="home_tile_channels">
+        <item quantity="one">%1$s chaîne</item>
+        <item quantity="many">%1$s chaînes</item>
+        <item quantity="other">%1$s chaînes</item>
+    </plurals>
+    <plurals name="home_tile_movies">
+        <item quantity="one">%1$s film</item>
+        <item quantity="many">%1$s films</item>
+        <item quantity="other">%1$s films</item>
+    </plurals>
+    <plurals name="home_tile_series">
+        <item quantity="one">%1$s série</item>
+        <item quantity="many">%1$s séries</item>
+        <item quantity="other">%1$s séries</item>
+    </plurals>
+
+    <string name="home_row_continue">Continuer à regarder</string>
+    <string name="home_row_favorite_channels">Chaînes favorites</string>
+    <string name="home_row_recent_channels">Regardées récemment</string>
+    <string name="home_row_recent_movies">Films ajoutés récemment</string>
+    <string name="home_row_recent_series">Séries ajoutées récemment</string>
+    <string name="home_see_all">Tout voir</string>
+    <string name="home_badge_movie">Film</string>
+    <string name="home_badge_series">Série</string>
+    <string name="home_no_programme">Programme non communiqué</string>
+</resources>

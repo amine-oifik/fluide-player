@@ -1,22 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Launcher icon for Android 7.x; Android 8+ uses the adaptive icon in drawable-v26. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="48dp"
     android:height="48dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path
-        android:fillColor="#FF0B1020"
-        android:pathData="M54,6 A48,48 0 1,1 53.99,6 Z" />
+    <!-- Round navy badge -->
+    <path android:pathData="M6,54 A48,48 0 1,1 102,54 A48,48 0 1,1 6,54 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="18"
+                android:startY="10"
+                android:endX="90"
+                android:endY="100"
+                android:startColor="#FF0A1330"
+                android:centerColor="#FF070B1C"
+                android:endColor="#FF120A26" />
+        </aapt:attr>
+    </path>
+    <!-- Soft blue glow -->
+    <path android:pathData="M6,54 A48,48 0 1,1 102,54 A48,48 0 1,1 6,54 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="54"
+                android:centerY="54"
+                android:gradientRadius="48"
+                android:startColor="#4D3D7BFF"
+                android:endColor="#003D7BFF" />
+        </aapt:attr>
+    </path>
+    <!-- Thin glass rim -->
     <path
         android:fillColor="#00000000"
-        android:strokeColor="#FFFFFFFF"
-        android:strokeWidth="4"
-        android:pathData="M34,38 L74,38 Q78,38 78,42 L78,66 Q78,70 74,70 L34,70 Q30,70 30,66 L30,42 Q30,38 34,38 Z" />
-    <path
-        android:fillColor="#FF3D7BFF"
-        android:pathData="M49,46 L62,54 L49,62 Z" />
-    <path
-        android:fillColor="#FFFFFFFF"
-        android:pathData="M44,74 L64,74 L64,78 L44,78 Z" />
+        android:strokeColor="#1AFFFFFF"
+        android:strokeWidth="1.5"
+        android:pathData="M6.75,54 A47.25,47.25 0 1,1 101.25,54 A47.25,47.25 0 1,1 6.75,54 Z" />
+    <!-- The mark (100 x 100 design box) -->
+    <group
+        android:scaleX="0.76"
+        android:scaleY="0.76"
+        android:translateX="16"
+        android:translateY="16">
+        <path android:pathData="M24,58 L24,20 Q24,10 32.69,14.96 L85.31,45.04 Q94,50 85.31,54.96 L80,58 C58,40 42,74 24,58 Z">
+            <aapt:attr name="android:fillColor">
+                <gradient
+                    android:type="linear"
+                    android:startX="24"
+                    android:startY="12"
+                    android:endX="90"
+                    android:endY="56"
+                    android:startColor="#FF3D7BFF"
+                    android:endColor="#FF2BB0F7" />
+            </aapt:attr>
+        </path>
+        <path android:pathData="M24,64.5 C42,80.5 57,46 76,60.29 L32.69,85.04 Q24,90 24,80 Z">
+            <aapt:attr name="android:fillColor">
+                <gradient
+                    android:type="linear"
+                    android:startX="24"
+                    android:startY="62"
+                    android:endX="62"
+                    android:endY="88"
+                    android:startColor="#FF22D3EE"
+                    android:endColor="#FF86F4FF" />
+            </aapt:attr>
+        </path>
+    </group>
 </vector>

@@ -1,26 +1,107 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Android TV home-screen banner (320x180dp). -->
+<!--
+  Android TV home-screen banner (320x180dp): navy background with a soft glow, the Fluide Player mark on
+  the left and a blue to cyan wave flowing to the right (with a violet under-wave and a few droplets).
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="320dp"
     android:height="180dp"
     android:viewportWidth="320"
     android:viewportHeight="180">
+    <!-- Background: navy to very dark violet -->
+    <path android:pathData="M0,0 L320,0 L320,180 L0,180 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="0"
+                android:startY="0"
+                android:endX="320"
+                android:endY="180"
+                android:startColor="#FF070B1C"
+                android:centerColor="#FF0A1330"
+                android:endColor="#FF120A26" />
+        </aapt:attr>
+    </path>
+    <!-- Glow behind the mark -->
+    <path android:pathData="M0,0 L200,0 L200,180 L0,180 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="84"
+                android:centerY="90"
+                android:gradientRadius="96"
+                android:startColor="#593D7BFF"
+                android:endColor="#003D7BFF" />
+        </aapt:attr>
+    </path>
+    <!-- Violet under-wave -->
     <path
-        android:fillColor="#FF0B1020"
-        android:pathData="M0,0 L320,0 L320,180 L0,180 Z" />
-    <path
-        android:fillColor="#FF16204A"
-        android:pathData="M0,120 Q160,70 320,110 L320,180 L0,180 Z" />
-    <!-- Screen with play symbol -->
+        android:fillAlpha="0.32"
+        android:fillColor="#FF7B3DFF"
+        android:pathData="M0,174 C70,166 130,154 186,134 C234,117 280,104 320,100 L320,116 C282,120 238,132 192,150 C140,170 80,180 30,180 L0,180 Z" />
+    <!-- Main wave -->
+    <path android:pathData="M0,150 C64,144 114,132 164,110 C214,88 264,72 320,66 L320,96 C266,102 218,116 170,138 C120,160 64,166 0,160 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="0"
+                android:startY="160"
+                android:endX="320"
+                android:endY="80"
+                android:startColor="#CC3D7BFF"
+                android:endColor="#8022D3EE" />
+        </aapt:attr>
+    </path>
+    <!-- Bright crest of the main wave -->
     <path
         android:fillColor="#00000000"
-        android:strokeColor="#FFFFFFFF"
-        android:strokeWidth="5"
-        android:pathData="M110,52 L210,52 Q216,52 216,58 L216,116 Q216,122 210,122 L110,122 Q104,122 104,116 L104,58 Q104,52 110,52 Z" />
+        android:pathData="M0,150 C64,144 114,132 164,110 C214,88 264,72 320,66"
+        android:strokeAlpha="0.85"
+        android:strokeColor="#FF22D3EE"
+        android:strokeWidth="1.5" />
+    <!-- Droplets -->
     <path
+        android:fillAlpha="0.75"
+        android:fillColor="#FF22D3EE"
+        android:pathData="M199,62 A4,4 0 1,1 207,62 A4,4 0 1,1 199,62 Z" />
+    <path
+        android:fillAlpha="0.8"
         android:fillColor="#FF3D7BFF"
-        android:pathData="M148,70 L178,87 L148,104 Z" />
+        android:pathData="M224,44 A2.5,2.5 0 1,1 229,44 A2.5,2.5 0 1,1 224,44 Z" />
     <path
-        android:fillColor="#FFFFFFFF"
-        android:pathData="M140,130 L180,130 L180,136 L140,136 Z" />
+        android:fillAlpha="0.6"
+        android:fillColor="#FF86F4FF"
+        android:pathData="M246,58 A1.8,1.8 0 1,1 249.6,58 A1.8,1.8 0 1,1 246,58 Z" />
+    <!-- The mark (100 x 100 design box, same geometry as the launcher icon) -->
+    <group
+        android:scaleX="1.1"
+        android:scaleY="1.1"
+        android:translateX="30"
+        android:translateY="35">
+        <path android:pathData="M24,58 L24,20 Q24,10 32.69,14.96 L85.31,45.04 Q94,50 85.31,54.96 L80,58 C58,40 42,74 24,58 Z">
+            <aapt:attr name="android:fillColor">
+                <gradient
+                    android:type="linear"
+                    android:startX="24"
+                    android:startY="12"
+                    android:endX="90"
+                    android:endY="56"
+                    android:startColor="#FF3D7BFF"
+                    android:endColor="#FF2BB0F7" />
+            </aapt:attr>
+        </path>
+        <path android:pathData="M24,64.5 C42,80.5 57,46 76,60.29 L32.69,85.04 Q24,90 24,80 Z">
+            <aapt:attr name="android:fillColor">
+                <gradient
+                    android:type="linear"
+                    android:startX="24"
+                    android:startY="62"
+                    android:endX="62"
+                    android:endY="88"
+                    android:startColor="#FF22D3EE"
+                    android:endColor="#FF86F4FF" />
+            </aapt:attr>
+        </path>
+    </group>
 </vector>

@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="launcher_background">#FF0B1020</color>
+    <!-- Adaptive icon background: the deep navy of the app. -->
+    <color name="launcher_background">#FF070B1C</color>
+    <!-- Brand palette (same values as FluideColors in ui/components/Brand.kt). -->
     <color name="brand">#FF3D7BFF</color>
+    <color name="brand_cyan">#FF22D3EE</color>
+    <color name="brand_violet">#FF7B3DFF</color>
+    <color name="brand_warm">#FFFF6A3D</color>
+    <color name="brand_navy">#FF070B1C</color>
 </resources>

@@ -10,13 +10,17 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
-enum class Glyph { TV, MOVIE, SERIES, REPLAY, PLAYLIST, SETTINGS, REFRESH, EXIT, SEARCH, PLAY, PAUSE, STAR, LOCK, BACK, FORWARD, REWIND, NEXT, LIST, GUIDE }
+enum class Glyph {
+    TV, MOVIE, SERIES, REPLAY, PLAYLIST, SETTINGS, REFRESH, EXIT, SEARCH, PLAY, PAUSE, STAR, LOCK, BACK, FORWARD, REWIND, NEXT, LIST, GUIDE,
+    HOME, HEART, INFO, GRID, LANGUAGE, USER, CLOCK, CHECK,
+}
 
 /**
  * Simple line icons drawn on a canvas (no icon font or vector resources to ship), scaled to [size].
@@ -26,6 +30,7 @@ fun AppIcon(glyph: Glyph, tint: Color, modifier: Modifier = Modifier, size: Dp =
     Canvas(modifier.size(size)) {
         val w = this.size.width
         val stroke = Stroke(width = w * 0.08f, cap = StrokeCap.Round)
+        val joined = Stroke(width = w * 0.08f, cap = StrokeCap.Round, join = StrokeJoin.Round)
         when (glyph) {
             Glyph.TV -> {
                 drawRoundRect(tint, Offset(w * 0.08f, w * 0.16f), Size(w * 0.84f, w * 0.56f), CornerRadius(w * 0.08f), style = stroke)
@@ -138,6 +143,77 @@ fun AppIcon(glyph: Glyph, tint: Color, modifier: Modifier = Modifier, size: Dp =
                 drawLine(tint, Offset(w * 0.7f, w * 0.06f), Offset(w * 0.7f, w * 0.2f), stroke.width, StrokeCap.Round)
                 drawLine(tint, Offset(w * 0.24f, w * 0.52f), Offset(w * 0.76f, w * 0.52f), stroke.width, StrokeCap.Round)
                 drawLine(tint, Offset(w * 0.24f, w * 0.7f), Offset(w * 0.56f, w * 0.7f), stroke.width, StrokeCap.Round)
+            }
+            Glyph.HOME -> {
+                val roof = Path().apply {
+                    moveTo(w * 0.1f, w * 0.47f)
+                    lineTo(w * 0.5f, w * 0.12f)
+                    lineTo(w * 0.9f, w * 0.47f)
+                }
+                drawPath(roof, tint, style = joined)
+                val walls = Path().apply {
+                    moveTo(w * 0.22f, w * 0.4f)
+                    lineTo(w * 0.22f, w * 0.86f)
+                    lineTo(w * 0.78f, w * 0.86f)
+                    lineTo(w * 0.78f, w * 0.4f)
+                }
+                drawPath(walls, tint, style = joined)
+                drawRoundRect(tint, Offset(w * 0.42f, w * 0.6f), Size(w * 0.16f, w * 0.26f), CornerRadius(w * 0.03f))
+            }
+            Glyph.HEART -> {
+                val path = Path().apply {
+                    moveTo(w * 0.5f, w * 0.87f)
+                    cubicTo(w * 0.24f, w * 0.69f, w * 0.07f, w * 0.53f, w * 0.07f, w * 0.36f)
+                    cubicTo(w * 0.07f, w * 0.22f, w * 0.18f, w * 0.13f, w * 0.3f, w * 0.13f)
+                    cubicTo(w * 0.39f, w * 0.13f, w * 0.46f, w * 0.18f, w * 0.5f, w * 0.26f)
+                    cubicTo(w * 0.54f, w * 0.18f, w * 0.61f, w * 0.13f, w * 0.7f, w * 0.13f)
+                    cubicTo(w * 0.82f, w * 0.13f, w * 0.93f, w * 0.22f, w * 0.93f, w * 0.36f)
+                    cubicTo(w * 0.93f, w * 0.53f, w * 0.76f, w * 0.69f, w * 0.5f, w * 0.87f)
+                    close()
+                }
+                drawPath(path, tint)
+            }
+            Glyph.INFO -> {
+                drawCircle(tint, w * 0.4f, Offset(w / 2, w / 2), style = stroke)
+                drawCircle(tint, w * 0.055f, Offset(w * 0.5f, w * 0.31f))
+                drawLine(tint, Offset(w * 0.5f, w * 0.46f), Offset(w * 0.5f, w * 0.71f), stroke.width, StrokeCap.Round)
+            }
+            Glyph.GRID -> {
+                for (row in 0..1) {
+                    for (col in 0..1) {
+                        drawRoundRect(
+                            tint,
+                            Offset(w * (0.12f + col * 0.46f), w * (0.12f + row * 0.46f)),
+                            Size(w * 0.3f, w * 0.3f),
+                            CornerRadius(w * 0.07f),
+                            style = stroke,
+                        )
+                    }
+                }
+            }
+            Glyph.LANGUAGE -> {
+                drawCircle(tint, w * 0.4f, Offset(w / 2, w / 2), style = stroke)
+                drawOval(tint, Offset(w * 0.32f, w * 0.1f), Size(w * 0.36f, w * 0.8f), style = stroke)
+                drawLine(tint, Offset(w * 0.1f, w * 0.5f), Offset(w * 0.9f, w * 0.5f), stroke.width, StrokeCap.Round)
+            }
+            Glyph.USER -> {
+                drawCircle(tint, w * 0.16f, Offset(w * 0.5f, w * 0.3f), style = stroke)
+                drawArc(tint, 180f, 180f, false, Offset(w * 0.16f, w * 0.6f), Size(w * 0.68f, w * 0.56f), style = stroke)
+                drawLine(tint, Offset(w * 0.16f, w * 0.88f), Offset(w * 0.84f, w * 0.88f), stroke.width, StrokeCap.Round)
+            }
+            Glyph.CLOCK -> {
+                val c = Offset(w / 2, w / 2)
+                drawCircle(tint, w * 0.4f, c, style = stroke)
+                drawLine(tint, c, Offset(w * 0.5f, w * 0.26f), stroke.width, StrokeCap.Round)
+                drawLine(tint, c, Offset(w * 0.67f, w * 0.6f), stroke.width, StrokeCap.Round)
+            }
+            Glyph.CHECK -> {
+                val path = Path().apply {
+                    moveTo(w * 0.16f, w * 0.52f)
+                    lineTo(w * 0.4f, w * 0.75f)
+                    lineTo(w * 0.86f, w * 0.27f)
+                }
+                drawPath(path, tint, style = Stroke(width = w * 0.1f, cap = StrokeCap.Round, join = StrokeJoin.Round))
             }
         }
     }

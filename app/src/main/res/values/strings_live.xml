@@ -10,6 +10,9 @@
         <item quantity="other">%1$d chaînes</item>
     </plurals>
 
+    <!-- "All channels" in the narrow group column of the Live TV screen. -->
+    <string name="live_group_all">Toutes</string>
+
     <!-- Programme on air: time left ("Reste 23 min", "Reste 1 h 05"). -->
     <string name="live_remaining">Reste %1$s</string>
     <!-- Programme to come: time before it starts ("Dans 45 min"). -->

@@ -32,6 +32,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
@@ -58,10 +59,12 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -142,7 +145,7 @@ fun VideoControls(
             Modifier
                 .fillMaxWidth()
                 .background(ControlsScrim)
-                .padding(start = 48.dp, end = 48.dp, top = 84.dp, bottom = 24.dp),
+                .padding(start = 48.dp, end = 48.dp, top = 56.dp, bottom = 24.dp),
         ) {
             Row(verticalAlignment = Alignment.Bottom) {
                 Column(Modifier.weight(1f)) {
@@ -181,43 +184,49 @@ fun VideoControls(
                 }
             }
             Spacer(Modifier.height(18.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    formatClock(shownPosition),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                )
-                Spacer(Modifier.weight(1f))
-                Text(
-                    if (duration > 0) "-" + formatClock(duration - shownPosition) else "--:--",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = OverlayColors.Muted,
-                )
-            }
-            Spacer(Modifier.height(4.dp))
-            SeekBar(
-                fraction = shownFraction,
-                enabled = duration > 0,
-                scrubbing = scrubbing != null,
-                onScrub = { scrub = it },
-                onSeek = { f ->
-                    val targetMs = (f * duration).toLong()
-                    scrub = null
-                    position = targetMs
-                    vm.seekTo(targetMs)
-                },
-            )
-            Spacer(Modifier.height(12.dp))
-            Box(Modifier.fillMaxWidth()) {
-                Row(Modifier.align(Alignment.Center), verticalAlignment = Alignment.CenterVertically) {
-                    RoundButton(Glyph.REWIND, onClick = { vm.seekTo(position - 10_000) })
-                    Spacer(Modifier.width(22.dp))
-                    PlayButton(paused = phase == PlaybackPhase.PAUSED, onClick = vm::togglePause)
-                    Spacer(Modifier.width(22.dp))
-                    RoundButton(Glyph.FORWARD, onClick = { vm.seekTo(position + 10_000) })
+            // Times, seek bar and transport buttons stay left to right in every language (media
+            // timelines are not mirrored).
+            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+                Column(Modifier.fillMaxWidth()) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            formatClock(shownPosition),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                        )
+                        Spacer(Modifier.weight(1f))
+                        Text(
+                            if (duration > 0) "-" + formatClock(duration - shownPosition) else "--:--",
+                            style = MaterialTheme.typography.titleSmall,
+                            color = OverlayColors.Muted,
+                        )
+                    }
+                    Spacer(Modifier.height(4.dp))
+                    SeekBar(
+                        fraction = shownFraction,
+                        enabled = duration > 0,
+                        scrubbing = scrubbing != null,
+                        onScrub = { scrub = it },
+                        onSeek = { f ->
+                            val targetMs = (f * duration).toLong()
+                            scrub = null
+                            position = targetMs
+                            vm.seekTo(targetMs)
+                        },
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    Box(Modifier.fillMaxWidth()) {
+                        Row(Modifier.align(Alignment.Center), verticalAlignment = Alignment.CenterVertically) {
+                            RoundButton(Glyph.REWIND, onClick = { vm.seekTo(position - 10_000) })
+                            Spacer(Modifier.width(22.dp))
+                            PlayButton(paused = phase == PlaybackPhase.PAUSED, onClick = vm::togglePause)
+                            Spacer(Modifier.width(22.dp))
+                            RoundButton(Glyph.FORWARD, onClick = { vm.seekTo(position + 10_000) })
+                        }
+                        RoundButton(Glyph.LIST, Modifier.align(Alignment.CenterEnd), onClick = vm::openOptions)
+                    }
                 }
-                RoundButton(Glyph.LIST, Modifier.align(Alignment.CenterEnd), onClick = vm::openOptions)
             }
             if (mode != PlayerMode.LIVE) {
                 Text(

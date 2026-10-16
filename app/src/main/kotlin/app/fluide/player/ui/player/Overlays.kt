@@ -39,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -51,6 +52,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.fluide.player.R
@@ -112,19 +114,20 @@ internal fun OverlayTag(
     modifier: Modifier = Modifier,
     textColor: Color = Color.White,
     border: Color? = null,
+    large: Boolean = false,
 ) {
-    val shape = RoundedCornerShape(6.dp)
+    val shape = RoundedCornerShape(if (large) 8.dp else 6.dp)
     Box(
         modifier
             .clip(shape)
             .background(fill, shape)
             .then(if (border != null) Modifier.border(1.dp, border, shape) else Modifier)
-            .padding(horizontal = 8.dp, vertical = 2.dp),
+            .padding(horizontal = if (large) 10.dp else 8.dp, vertical = if (large) 3.dp else 2.dp),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text,
-            style = MaterialTheme.typography.labelSmall,
+            style = if (large) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.Bold,
             color = textColor,
             letterSpacing = 0.6.sp,
@@ -142,7 +145,11 @@ private fun OverlayProgress(fraction: Float, modifier: Modifier = Modifier, brus
                 val radius = CornerRadius(size.height / 2f)
                 drawRoundRect(color = OverlayColors.Track, cornerRadius = radius)
                 val filled = size.width * fraction.coerceIn(0f, 1f)
-                if (filled > 0f) drawRoundRect(brush = brush, size = Size(filled, size.height), cornerRadius = radius)
+                if (filled > 0f) {
+                    // Filled from the start side: from the right in right-to-left layouts.
+                    val x = if (layoutDirection == LayoutDirection.Rtl) size.width - filled else 0f
+                    drawRoundRect(brush = brush, topLeft = Offset(x, 0f), size = Size(filled, size.height), cornerRadius = radius)
+                }
             },
     )
 }
@@ -305,8 +312,9 @@ private fun BannerProgramme(p: Programme, live: Boolean, timeFormat: java.text.D
             OverlayTag(
                 stringResource(if (live) R.string.epg_now else R.string.epg_next),
                 if (live) LiveBrush else SolidColor(Color(0x1FFFFFFF)),
-                modifier = Modifier.widthIn(min = 92.dp),
+                modifier = Modifier.widthIn(min = 100.dp),
                 textColor = if (live) Color.White else OverlayColors.Soft,
+                large = true,
             )
             Spacer(Modifier.width(12.dp))
             Text(

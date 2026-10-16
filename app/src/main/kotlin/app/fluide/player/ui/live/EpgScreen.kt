@@ -32,12 +32,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.CacheDrawScope
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
@@ -53,6 +55,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -74,15 +77,27 @@ import java.util.Locale
 /** Corner radius of the preview hole: the same as the clip of the video in FluideRoot. */
 internal val PreviewCorner = 12.dp
 
+/**
+ * Where the video preview is in this full-screen draw area. The root places the video with
+ * Modifier.offset, which is mirrored in right-to-left layouts (Arabic): the hole follows it.
+ */
+private fun CacheDrawScope.holeRect(holeOrigin: DpOffset, holeSize: DpSize): Rect {
+    val width = holeSize.width.toPx()
+    val left = if (layoutDirection == LayoutDirection.Rtl) size.width - holeOrigin.x.toPx() - width else holeOrigin.x.toPx()
+    val top = holeOrigin.y.toPx()
+    return Rect(left, top, left + width, top + holeSize.height.toPx())
+}
+
 /** Paints the screen background everywhere but the video preview. */
 fun Modifier.previewHole(origin: DpOffset, size: DpSize): Modifier = holeBackground(origin, size)
 
 private fun Modifier.holeBackground(holeOrigin: DpOffset, holeSize: DpSize): Modifier = drawWithCache {
+    val rect = holeRect(holeOrigin, holeSize)
     val hole = RoundRect(
-        left = holeOrigin.x.toPx(),
-        top = holeOrigin.y.toPx(),
-        right = (holeOrigin.x + holeSize.width).toPx(),
-        bottom = (holeOrigin.y + holeSize.height).toPx(),
+        left = rect.left,
+        top = rect.top,
+        right = rect.right,
+        bottom = rect.bottom,
         cornerRadius = CornerRadius(PreviewCorner.toPx()),
     )
     val holePath = Path().apply { addRoundRect(hole) }
@@ -114,10 +129,11 @@ private fun Modifier.holeBackground(holeOrigin: DpOffset, holeSize: DpSize): Mod
 internal fun Modifier.previewGlow(origin: DpOffset, size: DpSize): Modifier = holeGlow(origin, size)
 
 private fun Modifier.holeGlow(holeOrigin: DpOffset, holeSize: DpSize): Modifier = drawWithCache {
-    val left = holeOrigin.x.toPx()
-    val top = holeOrigin.y.toPx()
-    val right = (holeOrigin.x + holeSize.width).toPx()
-    val bottom = (holeOrigin.y + holeSize.height).toPx()
+    val rect = holeRect(holeOrigin, holeSize)
+    val left = rect.left
+    val top = rect.top
+    val right = rect.right
+    val bottom = rect.bottom
     val corner = PreviewCorner.toPx()
     val holePath = Path().apply {
         addRoundRect(RoundRect(left = left, top = top, right = right, bottom = bottom, cornerRadius = CornerRadius(corner)))
@@ -129,9 +145,9 @@ private fun Modifier.holeGlow(holeOrigin: DpOffset, holeSize: DpSize): Modifier 
     )
     // (distance of the stroke centre from the edge of the hole, stroke width, alpha) of each halo.
     val halos = listOf(
-        Triple(10.dp.toPx(), 12.dp.toPx(), 0.07f),
-        Triple(6.dp.toPx(), 8.dp.toPx(), 0.12f),
-        Triple(3.dp.toPx(), 4.dp.toPx(), 0.24f),
+        Triple(10.dp.toPx(), 12.dp.toPx(), 0.05f),
+        Triple(6.dp.toPx(), 8.dp.toPx(), 0.09f),
+        Triple(3.dp.toPx(), 4.dp.toPx(), 0.22f),
     )
     val line = 1.25.dp.toPx()
     val lineWidth = 2.5.dp.toPx()
@@ -202,6 +218,7 @@ fun EpgScreen(vm: MainViewModel) {
 
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val (origin, size) = LiveLayout.preview(maxWidth)
+        val start = liveStart(maxWidth)
         Box(
             Modifier
                 .fillMaxSize()
@@ -213,7 +230,7 @@ fun EpgScreen(vm: MainViewModel) {
                     Modifier
                         .weight(LiveLayout.GROUPS + LiveLayout.CHANNELS)
                         .fillMaxHeight()
-                        .padding(start = LiveStart, top = 16.dp, end = 12.dp),
+                        .padding(start = start, top = 16.dp, end = 12.dp),
                 ) {
                     EpgHeader(epg, settings.clock24h, onBack = { vm.onBack() })
                     Spacer(Modifier.height(14.dp))
@@ -324,7 +341,7 @@ private fun EpgHeader(epg: EpgState, clock24h: Boolean, onBack: () -> Unit) {
                 AppIcon(if (epg.catchupDays > 0) Glyph.REPLAY else Glyph.GUIDE, FluideColors.Cyan, size = 16.dp)
                 Spacer(Modifier.width(6.dp))
                 val caption = if (epg.catchupDays > 0) {
-                    stringResource(R.string.epg_title) + "  ·  " + stringResource(R.string.live_replay, epg.catchupDays)
+                    stringResource(R.string.live_replay, epg.catchupDays)
                 } else {
                     stringResource(R.string.epg_title)
                 }

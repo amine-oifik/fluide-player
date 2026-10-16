@@ -78,6 +78,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
@@ -121,8 +122,8 @@ object LiveLayout {
 
 // ------------------------------------------------------------------ shared look of the Live TV and guide screens
 
-/** Start padding of the Live TV and programme guide screens (TV overscan). */
-internal val LiveStart = 36.dp
+/** Start padding of the Live TV and programme guide screens: room for the TV overscan, less on phones. */
+internal fun liveStart(screenWidth: Dp): Dp = if (screenWidth < 900.dp) 20.dp else 32.dp
 
 /** Palette of the Live TV and guide screens (Fluide Player design language). */
 internal object LiveColors {
@@ -226,6 +227,7 @@ fun LiveScreen(vm: MainViewModel, guide: GuideState, playingId: Long) {
 
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val (origin, size) = LiveLayout.preview(maxWidth)
+        val start = liveStart(maxWidth)
         Box(
             Modifier
                 .fillMaxSize()
@@ -234,12 +236,13 @@ fun LiveScreen(vm: MainViewModel, guide: GuideState, playingId: Long) {
         ) {
             Row(Modifier.fillMaxSize()) {
                 Column(Modifier.weight(LiveLayout.GROUPS + LiveLayout.CHANNELS).fillMaxHeight()) {
-                    LiveHeader(guide = guide, clock24h = settings.clock24h, onHome = vm::openHome)
+                    LiveHeader(guide = guide, clock24h = settings.clock24h, start = start, onHome = vm::openHome)
                     Row(Modifier.fillMaxWidth().weight(1f)) {
                         GroupColumn(
                             groups = guide.groups,
                             selected = guide.selected,
                             onSelect = vm::selectFilter,
+                            start = start,
                             modifier = Modifier.weight(LiveLayout.GROUPS).fillMaxHeight(),
                         )
                         Column(
@@ -306,11 +309,11 @@ fun LiveScreen(vm: MainViewModel, guide: GuideState, playingId: Long) {
 }
 
 @Composable
-private fun LiveHeader(guide: GuideState, clock24h: Boolean, onHome: () -> Unit) {
+private fun LiveHeader(guide: GuideState, clock24h: Boolean, start: Dp, onHome: () -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()
-            .padding(start = LiveStart, end = 16.dp, top = 16.dp, bottom = 12.dp),
+            .padding(start = start, end = 16.dp, top = 16.dp, bottom = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         IconChip(Glyph.BACK, onClick = onHome)
@@ -347,13 +350,14 @@ private fun GroupColumn(
     groups: List<GuideGroup>,
     selected: ChannelFilter,
     onSelect: (ChannelFilter) -> Unit,
+    start: Dp,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
         modifier = modifier
-            .padding(start = LiveStart, end = 8.dp, bottom = 20.dp)
+            .padding(start = start, end = 8.dp, bottom = 20.dp)
             .liveGlass(),
-        contentPadding = PaddingValues(8.dp),
+        contentPadding = PaddingValues(6.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         items(groups, key = { it.filter.toString() }) { group ->
@@ -363,6 +367,7 @@ private fun GroupColumn(
                 onClick = { onSelect(group.filter) },
                 modifier = Modifier.fillMaxWidth().height(44.dp),
                 focusedScale = 1.04f,
+                horizontalPadding = 10.dp,
             ) { focused ->
                 val highlighted = focused || isSelected
                 val glyph = if (group.locked) Glyph.LOCK else groupGlyph(group.filter)
@@ -374,10 +379,10 @@ private fun GroupColumn(
                         else -> LiveColors.Muted
                     }
                     AppIcon(glyph, tint, size = 16.dp)
-                    Spacer(Modifier.width(10.dp))
+                    Spacer(Modifier.width(8.dp))
                 }
                 Text(
-                    text = groupLabel(group),
+                    text = pillLabel(group.filter),
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                     color = if (highlighted) Color.White else LiveColors.Soft,
@@ -387,29 +392,16 @@ private fun GroupColumn(
                 )
                 if (group.count >= 0) {
                     Spacer(Modifier.width(6.dp))
-                    CountChip(group.count, highlighted)
+                    Text(
+                        group.count.toString(),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = if (highlighted) Color.White else LiveColors.Dim,
+                        maxLines = 1,
+                    )
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun CountChip(count: Int, highlighted: Boolean) {
-    val shape = RoundedCornerShape(10.dp)
-    Box(
-        Modifier
-            .clip(shape)
-            .background(if (highlighted) Color(0x33FFFFFF) else LiveColors.Tile, shape)
-            .padding(horizontal = 7.dp, vertical = 1.dp),
-    ) {
-        Text(
-            count.toString(),
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = if (highlighted) Color.White else LiveColors.Muted,
-            maxLines = 1,
-        )
     }
 }
 
@@ -424,6 +416,11 @@ private fun groupGlyph(filter: ChannelFilter): Glyph? = when (filter) {
 
 @Composable
 private fun groupLabel(group: GuideGroup): String = filterLabel(group.filter)
+
+/** Label in the narrow group column: "Toutes" instead of "Toutes les chaînes". */
+@Composable
+private fun pillLabel(filter: ChannelFilter): String =
+    if (filter == ChannelFilter.All) stringResource(R.string.live_group_all) else filterLabel(filter)
 
 @Composable
 private fun filterLabel(filter: ChannelFilter): String = when (filter) {
@@ -683,6 +680,15 @@ private fun ChannelPanel(
                     Text(it, style = MaterialTheme.typography.labelMedium, color = LiveColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
+            if (row.catchupDays > 0) {
+                Spacer(Modifier.width(8.dp))
+                LiveTag(
+                    stringResource(R.string.live_replay, row.catchupDays),
+                    SolidColor(FluideColors.Cyan.copy(alpha = 0.14f)),
+                    textColor = FluideColors.Cyan,
+                    border = FluideColors.Cyan.copy(alpha = 0.5f),
+                )
+            }
             if (row.favorite) {
                 Spacer(Modifier.width(8.dp))
                 AppIcon(Glyph.STAR, LiveColors.Gold, size = 18.dp)
@@ -715,7 +721,7 @@ private fun ChannelPanel(
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             TvButton(stringResource(R.string.live_epg), onClick = { vm.openEpg(row.id) }, glyph = Glyph.GUIDE)
             if (row.catchupDays > 0) {
-                TvButton(stringResource(R.string.live_replay, row.catchupDays), onClick = { vm.openEpg(row.id) }, glyph = Glyph.REPLAY)
+                TvButton(stringResource(R.string.guide_catchup), onClick = { vm.openEpg(row.id) }, glyph = Glyph.REPLAY)
             }
         }
         Text(
@@ -797,6 +803,7 @@ internal fun FluidPill(
     focusedScale: Float = 1.06f,
     idleFill: Color = Color.Transparent,
     idleBorder: Color = Color.Transparent,
+    horizontalPadding: Dp = 14.dp,
     content: @Composable RowScope.(focused: Boolean) -> Unit,
 ) {
     var focused by remember { mutableStateOf(false) }
@@ -823,7 +830,7 @@ internal fun FluidPill(
             .background(fill, LivePillShape)
             .border(if (focused) 2.dp else 1.dp, border, LivePillShape)
             .clickable(onClick = onClick)
-            .padding(horizontal = 14.dp),
+            .padding(horizontal = horizontalPadding),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         content(focused)
@@ -927,7 +934,7 @@ internal fun ReplayTag(modifier: Modifier = Modifier) {
     )
 }
 
-/** Thin rounded progress bar. */
+/** Thin rounded progress bar (filled from the start side: from the right in right-to-left layouts). */
 @Composable
 internal fun ThinProgress(
     fraction: Float,
@@ -942,7 +949,10 @@ internal fun ThinProgress(
                 val radius = CornerRadius(size.height / 2f)
                 drawRoundRect(color = LiveColors.Track, cornerRadius = radius)
                 val filled = size.width * fraction.coerceIn(0f, 1f)
-                if (filled > 0f) drawRoundRect(brush = brush, size = Size(filled, size.height), cornerRadius = radius)
+                if (filled > 0f) {
+                    val x = if (layoutDirection == LayoutDirection.Rtl) size.width - filled else 0f
+                    drawRoundRect(brush = brush, topLeft = Offset(x, 0f), size = Size(filled, size.height), cornerRadius = radius)
+                }
             },
     )
 }

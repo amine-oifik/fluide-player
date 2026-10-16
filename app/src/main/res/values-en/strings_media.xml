@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- English translation of values/strings_media.xml (movies / series grid and details pages). -->
+<resources>
+    <string name="media_categories">Categories</string>
+    <string name="media_empty_hint">Try another category or another search.</string>
+
+    <string name="media_kicker_movie">Movie</string>
+    <string name="media_kicker_series">Series</string>
+    <!-- Under the Resume button: time left in the movie ("42 min left"). -->
+    <string name="media_remaining">%1$s left</string>
+
+    <!-- Season pill: number of episodes ("10 ep."). -->
+    <string name="media_season_episodes">%1$d ep.</string>
+    <string name="media_episode_current">In progress</string>
+    <string name="media_episode_next">Up next</string>
+    <string name="media_episode_label">Episode %1$d</string>
+</resources>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Arabic translation of values/strings_home.xml (home screen). -->
+<resources>
+    <string name="home_search">بحث</string>
+    <string name="home_no_playlist">لا توجد قائمة تشغيل نشطة</string>
+    <string name="home_pill_expires">ينتهي خلال %1$d يوم</string>
+
+    <string name="home_greeting_morning">صباح الخير</string>
+    <string name="home_greeting_afternoon">طاب يومك</string>
+    <string name="home_greeting_evening">مساء الخير</string>
+    <string name="home_welcome_title">مرحبًا بك في Fluide Player</string>
+    <string name="home_welcome_text">قنواتك وأفلامك ومسلسلاتك في مكان واحد. اختر قسمًا للبدء.</string>
+    <string name="home_welcome_no_source">أضف حساب Xtream Codes أو قائمة تشغيل M3U لتجد هنا قنواتك وأفلامك ومسلسلاتك.</string>
+    <string name="home_add_playlist">إضافة قائمة تشغيل</string>
+
+    <string name="home_hero_resume">استئناف</string>
+    <string name="home_hero_watch">مشاهدة</string>
+    <string name="home_hero_tag_resume">متابعة المشاهدة</string>
+    <string name="home_hero_tag_new">جديد</string>
+    <string name="home_hero_watched">تمت مشاهدة %1$d%%</string>
+    <string name="home_hero_all_movies">كل الأفلام</string>
+
+    <string name="home_tile_replay_hint">شاهد البرامج السابقة من جديد</string>
+    <plurals name="home_tile_channels">
+        <item quantity="zero">%1$s قناة</item>
+        <item quantity="one">%1$s قناة</item>
+        <item quantity="two">%1$s قناتان</item>
+        <item quantity="few">%1$s قنوات</item>
+        <item quantity="many">%1$s قناة</item>
+        <item quantity="other">%1$s قناة</item>
+    </plurals>
+    <plurals name="home_tile_movies">
+        <item quantity="zero">%1$s فيلم</item>
+        <item quantity="one">%1$s فيلم</item>
+        <item quantity="two">%1$s فيلمان</item>
+        <item quantity="few">%1$s أفلام</item>
+        <item quantity="many">%1$s فيلمًا</item>
+        <item quantity="other">%1$s فيلم</item>
+    </plurals>
+    <plurals name="home_tile_series">
+        <item quantity="zero">%1$s مسلسل</item>
+        <item quantity="one">%1$s مسلسل</item>
+        <item quantity="two">%1$s مسلسلان</item>
+        <item quantity="few">%1$s مسلسلات</item>
+        <item quantity="many">%1$s مسلسلًا</item>
+        <item quantity="other">%1$s مسلسل</item>
+    </plurals>
+
+    <string name="home_row_continue">متابعة المشاهدة</string>
+    <string name="home_row_favorite_channels">القنوات المفضلة</string>
+    <string name="home_row_recent_channels">شوهدت مؤخرًا</string>
+    <string name="home_row_recent_movies">أفلام أُضيفت حديثًا</string>
+    <string name="home_row_recent_series">مسلسلات أُضيفت حديثًا</string>
+    <string name="home_see_all">عرض الكل</string>
+    <string name="home_badge_movie">فيلم</string>
+    <string name="home_badge_series">مسلسل</string>
+    <string name="home_no_programme">لا تتوفر معلومات عن البرنامج</string>
+</resources>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- English translation of values/strings_search.xml (global search screen). -->
+<resources>
+    <string name="search_back">Back</string>
+    <string name="search_field_hint">Channel, movie or series…</string>
+
+    <string name="search_hint_title">Your whole catalog, one search</string>
+    <string name="search_hint_body">Type a few letters: matching channels, movies and series show up as you type.</string>
+    <string name="search_catalog">%1$s channels · %2$s movies · %3$s series in this playlist</string>
+    <string name="search_try">Try</string>
+    <string-array name="search_examples">
+        <item>Sports</item>
+        <item>News</item>
+        <item>Cinema</item>
+        <item>Music</item>
+        <item>Kids</item>
+        <item>Docs</item>
+    </string-array>
+    <string name="search_remote_hint">↓ to browse the results · OK to open · Back to clear</string>
+    <string name="search_no_source">No active playlist: add one to start searching.</string>
+    <string name="search_add_source">Add a playlist</string>
+
+    <string name="search_section_channels">Channels</string>
+    <string name="search_section_movies">Movies</string>
+    <string name="search_section_series">Series</string>
+    <string name="search_action_watch">OK: watch live</string>
+    <string name="search_action_details">OK: view details</string>
+    <string name="search_count_capped">%1$d+</string>
+    <plurals name="search_results">
+        <item quantity="one">%1$d result for “%2$s”</item>
+        <item quantity="other">%1$d results for “%2$s”</item>
+    </plurals>
+    <string name="search_searching">Searching…</string>
+    <string name="search_no_programme">No program information</string>
+    <string name="search_see_all">See all</string>
+    <string name="search_see_all_live">in Live TV</string>
+    <string name="search_see_all_movies">in Movies</string>
+    <string name="search_see_all_series">in Series</string>
+
+    <string name="search_empty_title">No results for “%1$s”</string>
+    <string name="search_empty_body">Check the spelling or try a shorter word. Hidden or locked categories aren\'t included.</string>
+    <string name="search_empty_action">New search</string>
+</resources>

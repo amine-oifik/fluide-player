@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Arabic translation of values/strings_media.xml (movies / series grid and details pages). -->
+<resources>
+    <string name="media_categories">الفئات</string>
+    <string name="media_empty_hint">جرّب فئة أخرى أو بحثًا آخر.</string>
+
+    <string name="media_kicker_movie">فيلم</string>
+    <string name="media_kicker_series">مسلسل</string>
+    <!-- Under the Resume button: time left in the movie. -->
+    <string name="media_remaining">يتبقى %1$s</string>
+
+    <!-- Season pill: number of episodes. -->
+    <string name="media_season_episodes">%1$d حلقة</string>
+    <string name="media_episode_current">قيد المشاهدة</string>
+    <string name="media_episode_next">التالية</string>
+    <string name="media_episode_label">الحلقة %1$d</string>
+</resources>

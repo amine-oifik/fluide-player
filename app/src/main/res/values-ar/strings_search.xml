@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Arabic translation of values/strings_search.xml (global search screen). -->
+<resources>
+    <string name="search_back">رجوع</string>
+    <string name="search_field_hint">قناة أو فيلم أو مسلسل…</string>
+
+    <string name="search_hint_title">كل المحتوى في بحث واحد</string>
+    <string name="search_hint_body">اكتب بضعة أحرف: تظهر القنوات والأفلام والمسلسلات المطابقة أثناء الكتابة.</string>
+    <string name="search_catalog">القنوات: %1$s · الأفلام: %2$s · المسلسلات: %3$s في قائمة التشغيل هذه</string>
+    <string name="search_try">جرّب</string>
+    <string-array name="search_examples">
+        <item>رياضة</item>
+        <item>أخبار</item>
+        <item>سينما</item>
+        <item>موسيقى</item>
+        <item>أطفال</item>
+        <item>وثائقي</item>
+    </string-array>
+    <string name="search_remote_hint">↓ لتصفّح النتائج · OK للفتح · رجوع للمسح</string>
+    <string name="search_no_source">لا توجد قائمة تشغيل نشطة: أضف قائمة لتتمكن من البحث.</string>
+    <string name="search_add_source">إضافة قائمة تشغيل</string>
+
+    <string name="search_section_channels">القنوات</string>
+    <string name="search_section_movies">الأفلام</string>
+    <string name="search_section_series">المسلسلات</string>
+    <string name="search_action_watch">OK: المشاهدة مباشرة</string>
+    <string name="search_action_details">OK: عرض التفاصيل</string>
+    <string name="search_count_capped">%1$d+</string>
+    <plurals name="search_results">
+        <item quantity="zero">%1$d نتيجة لـ «%2$s»</item>
+        <item quantity="one">%1$d نتيجة لـ «%2$s»</item>
+        <item quantity="two">%1$d نتيجتان لـ «%2$s»</item>
+        <item quantity="few">%1$d نتائج لـ «%2$s»</item>
+        <item quantity="many">%1$d نتيجة لـ «%2$s»</item>
+        <item quantity="other">%1$d نتيجة لـ «%2$s»</item>
+    </plurals>
+    <string name="search_searching">جارٍ البحث…</string>
+    <string name="search_no_programme">لا تتوفر معلومات عن البرنامج</string>
+    <string name="search_see_all">عرض الكل</string>
+    <string name="search_see_all_live">في البث المباشر</string>
+    <string name="search_see_all_movies">في الأفلام</string>
+    <string name="search_see_all_series">في المسلسلات</string>
+
+    <string name="search_empty_title">لا توجد نتائج لـ «%1$s»</string>
+    <string name="search_empty_body">تحقّق من الإملاء أو جرّب كلمة أقصر. لا يشمل البحث الفئات المخفية أو المقفلة.</string>
+    <string name="search_empty_action">بحث جديد</string>
+</resources>

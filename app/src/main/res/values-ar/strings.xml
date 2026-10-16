@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Arabic translation of values/strings.xml. The app name is not translated. -->
+<resources>
+    <string name="app_name">Fluide Player</string>
+
+    <!-- Player -->
+    <string name="error_signal_lost">انقطعت الإشارة</string>
+    <string name="error_retry_in">إعادة المحاولة خلال %1$d ث</string>
+    <string name="error_retry_hint">OK: إعادة المحاولة الآن</string>
+    <string name="error_access_denied">رفض الخادم الوصول (HTTP %1$d)</string>
+    <string name="error_not_found">القناة غير موجودة على الخادم (HTTP %1$d)</string>
+    <string name="error_http">خطأ في الخادم (HTTP %1$d)</string>
+    <string name="error_decoder">يتعذّر على هذا الجهاز فك ترميز هذا البث</string>
+    <string name="error_drm">محتوى محمي: تم رفض الترخيص أو النظام غير مدعوم</string>
+    <string name="error_format">تنسيق غير معروف: لم يُرسل الخادم بث فيديو</string>
+    <string name="error_network">تعذّر الاتصال بالخادم</string>
+    <string name="notice_backup_source">مصدر احتياطي</string>
+    <string name="notice_no_channel_number">لا توجد قناة بالرقم %1$d</string>
+    <string name="notice_exit">اضغط على رجوع مرة أخرى للخروج</string>
+    <string name="notice_favorite_added">أُضيفت إلى المفضلة</string>
+    <string name="notice_favorite_removed">أُزيلت من المفضلة</string>
+    <string name="epg_now">الآن</string>
+    <string name="epg_next">التالي</string>
+    <string name="epg_none">لا يوجد برنامج لهذه القناة</string>
+
+    <!-- Guide -->
+    <string name="guide_all_channels">كل القنوات</string>
+    <string name="guide_favorites">المفضلة</string>
+    <string name="guide_search_hint">ابحث عن قناة</string>
+    <string name="guide_empty">لا توجد قنوات</string>
+    <string name="guide_no_group">بدون فئة</string>
+    <string name="guide_sources">قوائم التشغيل والإعدادات</string>
+    <string name="guide_favorite_hint">زر القائمة أو ضغطة مطوّلة: المفضلة</string>
+
+    <!-- Sources -->
+    <string name="sources_title">قوائم التشغيل</string>
+    <string name="sources_empty">لا توجد قوائم تشغيل. أضف حساب Xtream Codes أو قائمة تشغيل M3U التي يقدّمها مزوّد الخدمة.</string>
+    <string name="sources_add_title">إضافة قائمة تشغيل</string>
+    <string name="source_name">الاسم</string>
+    <string name="source_default_name">قائمتي</string>
+    <string name="source_url">رابط قائمة التشغيل (M3U)</string>
+    <string name="source_epg_url">رابط دليل XMLTV (اختياري)</string>
+    <string name="source_user_agent">User-Agent (اختياري)</string>
+    <string name="source_max_connections">الاتصالات المتزامنة المسموح بها: %1$d</string>
+    <string name="source_attestation">أُقرّ بأنني أملك حقوق الوصول إلى محتوى هذا المصدر. لا يوفّر Fluide Player أي قنوات.</string>
+    <string name="source_add_url">إضافة الرابط</string>
+    <string name="source_import_file">استيراد ملف…</string>
+    <string name="source_refresh">تحديث</string>
+    <string name="source_delete">حذف</string>
+    <string name="source_activate">تفعيل</string>
+    <string name="source_active">نشطة</string>
+    <string name="source_updated">آخر تحديث: %1$s</string>
+    <string name="source_never_updated">لم تُستورد بعد</string>
+    <plurals name="source_channels">
+        <item quantity="zero">%1$d قناة</item>
+        <item quantity="one">%1$d قناة</item>
+        <item quantity="two">%1$d قناتان</item>
+        <item quantity="few">%1$d قنوات</item>
+        <item quantity="many">%1$d قناة</item>
+        <item quantity="other">%1$d قناة</item>
+    </plurals>
+    <string name="import_running">جارٍ الاستيراد (العناصر المقروءة: %1$d)</string>
+    <string name="import_epg_running">جارٍ تحميل الدليل (البرامج المقروءة: %1$d)</string>
+    <string name="import_done">اكتمل الاستيراد (القنوات: %1$d)</string>
+    <string name="import_epg_done">تم استيراد الدليل (البرامج: %1$d)</string>
+    <string name="import_not_modified">محدّث بالفعل</string>
+    <string name="import_failed">فشل الاستيراد: %1$s</string>
+    <string name="import_failed_reimport">تعذّرت قراءة المصدر على هذا الجهاز: جارٍ استيراده من جديد</string>
+
+    <!-- Settings -->
+    <string name="settings_title">الإعدادات</string>
+    <string name="setting_resume">البدء بآخر قناة (بدلًا من الصفحة الرئيسية)</string>
+    <string name="setting_afr">معدل الإطارات التلقائي (AFR)</string>
+    <string name="setting_tunneling">التشغيل النفقي (إذا كان الجهاز يدعمه)</string>
+    <string name="setting_passthrough">تمرير الصوت متعدد القنوات (HDMI)</string>
+    <string name="setting_stats">إحصاءات التشغيل (معلومات الوسائط)</string>
+    <string name="close">إغلاق</string>
+    <!-- Home -->
+    <string name="home_live">البث المباشر</string>
+    <string name="home_movies">الأفلام</string>
+    <string name="home_series">المسلسلات</string>
+    <string name="home_catchup">الإعادة</string>
+    <string name="home_playlists">قوائم التشغيل</string>
+    <string name="home_settings">الإعدادات</string>
+    <string name="home_refresh">تحديث</string>
+    <string name="home_exit">خروج</string>
+    <string name="home_no_channels">لا توجد قنوات في قائمة التشغيل هذه</string>
+    <string name="home_no_movies">لا توجد أفلام في قائمة التشغيل هذه</string>
+    <string name="home_no_series">لا توجد مسلسلات في قائمة التشغيل هذه</string>
+    <string name="home_refreshing">جارٍ تحديث قائمة التشغيل…</string>
+    <string name="home_playlist">قائمة التشغيل: %1$s</string>
+    <string name="home_expires">ينتهي في %1$s</string>
+    <string name="home_expires_soon">اشتراكك على وشك الانتهاء (الأيام المتبقية: %1$d). تواصل مع مزوّدك لتجديده.</string>
+    <string name="home_unlimited">بدون تاريخ انتهاء</string>
+    <string name="home_status">الحالة: %1$s</string>
+    <string name="home_connections">الاتصالات: %1$d / %2$d</string>
+    <string name="home_counts">القنوات: %1$d · الأفلام: %2$d · المسلسلات: %3$d</string>
+    <string name="exit_title">الخروج من Fluide Player؟</string>
+    <string name="yes">نعم</string>
+    <string name="no">لا</string>
+
+    <!-- Live TV -->
+    <string name="guide_recent">الأخيرة</string>
+    <string name="guide_catchup">الإعادة</string>
+    <string name="live_fullscreen_hint">OK: ملء الشاشة · زر القائمة: المفضلة</string>
+    <string name="live_epg">دليل التلفزيون</string>
+    <string name="live_replay">الإعادة (%1$d يوم)</string>
+    <string name="live_select_channel">اختر قناة</string>
+    <string name="epg_title">دليل البرامج</string>
+    <string name="epg_today">اليوم</string>
+    <string name="epg_yesterday">أمس</string>
+    <string name="epg_tomorrow">غدًا</string>
+    <string name="epg_empty">لا توجد برامج في هذا اليوم</string>
+    <string name="epg_replay_badge">إعادة</string>
+    <string name="epg_live_badge">مباشر</string>
+    <string name="epg_future">لم يبدأ هذا البرنامج بعد</string>
+    <string name="epg_no_recording">لا يتوفر تسجيل لهذا البرنامج</string>
+
+    <!-- Movies and series -->
+    <string name="media_all">الكل</string>
+    <string name="media_continue">متابعة المشاهدة</string>
+    <string name="media_favorites">المفضلة</string>
+    <string name="media_recent">المضاف حديثًا</string>
+    <string name="media_no_group">بدون فئة</string>
+    <string name="media_search_movies">ابحث عن فيلم</string>
+    <string name="media_search_series">ابحث عن مسلسل</string>
+    <string name="media_empty">لا توجد عناصر</string>
+    <string name="media_sort">الترتيب: %1$s</string>
+    <string name="sort_default">الافتراضي</string>
+    <string name="sort_added">الأحدث إضافة</string>
+    <string name="sort_name_asc">أ ← ي</string>
+    <string name="sort_name_desc">ي ← أ</string>
+    <string name="sort_rating">التقييم</string>
+    <string name="sort_year">السنة</string>
+    <string name="details_play">تشغيل</string>
+    <string name="details_resume">استئناف من %1$s</string>
+    <string name="details_restart">من البداية</string>
+    <string name="details_favorite_add">إضافة إلى المفضلة</string>
+    <string name="details_favorite_remove">إزالة من المفضلة</string>
+    <string name="details_trailer">الإعلان التشويقي</string>
+    <string name="details_external">فتح باستخدام…</string>
+    <string name="details_director">الإخراج</string>
+    <string name="details_cast">البطولة</string>
+    <string name="details_genre">النوع</string>
+    <string name="details_released">تاريخ الإصدار</string>
+    <string name="details_duration">المدة</string>
+    <string name="details_country">البلد</string>
+    <string name="details_season">الموسم %1$d</string>
+    <string name="details_episodes">الحلقات</string>
+    <string name="details_continue">متابعة م%1$d ح%2$d</string>
+    <string name="details_no_episodes">لا توجد حلقات</string>
+    <string name="details_loading">جارٍ تحميل المعلومات…</string>
+    <string name="up_next">الحلقة التالية خلال %1$d ث</string>
+    <string name="up_next_now">OK: التشغيل الآن</string>
+
+    <!-- Player -->
+    <string name="options_title">خيارات التشغيل</string>
+    <string name="options_audio">المسار الصوتي</string>
+    <string name="options_subtitles">الترجمة</string>
+    <string name="options_subtitles_off">متوقفة</string>
+    <string name="options_none">لا توجد مسارات</string>
+    <string name="options_aspect">أبعاد الصورة</string>
+    <string name="aspect_fit">ملاءمة</string>
+    <string name="aspect_fill">تمديد</string>
+    <string name="aspect_zoom">تكبير</string>
+    <string name="options_stats">معلومات الوسائط</string>
+    <string name="options_external">الفتح في مشغّل آخر</string>
+    <string name="no_external_player">لا يوجد تطبيق آخر يمكنه تشغيل هذا البث</string>
+    <string name="next_episode">الحلقة التالية</string>
+
+    <!-- Parental control -->
+    <string name="pin_title">رمز الرقابة الأبوية</string>
+    <string name="pin_new_title">رمز رقابة أبوية جديد (4 أرقام)</string>
+    <string name="pin_wrong">الرمز غير صحيح</string>
+    <string name="pin_invalid">أدخل 4 أرقام</string>
+    <string name="pin_hint">الرمز الافتراضي: 0000</string>
+    <string name="pin_changed">تم تغيير رمز الرقابة الأبوية</string>
+    <string name="pin_delete">مسح</string>
+
+    <!-- Playlists -->
+    <string name="source_tab_xtream">Xtream Codes</string>
+    <string name="source_tab_m3u">رابط M3U</string>
+    <string name="source_tab_file">ملف</string>
+    <string name="source_server">عنوان الخادم (http://host:port)</string>
+    <string name="source_username">اسم المستخدم</string>
+    <string name="source_password">كلمة المرور</string>
+    <string name="source_format">تنسيق البث: %1$s</string>
+    <string name="source_login">تسجيل الدخول</string>
+    <string name="source_checking">جارٍ التحقق من الحساب…</string>
+    <string name="source_added">تمت إضافة قائمة التشغيل: جارٍ الاستيراد</string>
+    <string name="source_add_error">تم رفض الاتصال: %1$s</string>
+    <string name="source_type_xtream">Xtream Codes</string>
+    <string name="source_type_m3u">قائمة تشغيل M3U</string>
+    <string name="source_type_file">ملف M3U</string>
+    <string name="source_m3u_xtream_hint">يُضاف الرابط «get.php?username=…&amp;password=…» كحساب Xtream (مع تفاصيل الأفلام والمسلسلات).</string>
+    <string name="import_done_full">اكتمل الاستيراد: القنوات %1$d، الأفلام %2$d، المسلسلات %3$d</string>
+
+    <!-- Settings -->
+    <string name="settings_general">عام</string>
+    <string name="settings_player">المشغّل</string>
+    <string name="settings_parental">الرقابة الأبوية</string>
+    <string name="setting_parental">قفل فئات البالغين</string>
+    <string name="setting_change_pin">تغيير رمز الرقابة الأبوية</string>
+    <string name="setting_categories_live">إدارة فئات التلفزيون</string>
+    <string name="setting_categories_movies">إدارة فئات الأفلام</string>
+    <string name="setting_categories_series">إدارة فئات المسلسلات</string>
+    <string name="setting_auto_next">تشغيل الحلقة التالية تلقائيًا</string>
+    <string name="setting_aspect">أبعاد الصورة: %1$s</string>
+    <string name="setting_boot">التشغيل عند بدء تشغيل الجهاز</string>
+    <string name="setting_clock">ساعة بنظام 24 ساعة</string>
+    <string name="settings_data">البيانات</string>
+    <string name="settings_clear_history">مسح السجل (نقاط الاستئناف، القنوات الأخيرة)</string>
+    <string name="settings_clear_cache">مسح ذاكرة التخزين المؤقت للصور</string>
+    <string name="settings_history_cleared">تم مسح السجل</string>
+    <string name="settings_cache_cleared">تم مسح ذاكرة التخزين المؤقت</string>
+    <string name="settings_about">حول التطبيق</string>
+    <string name="settings_version">الإصدار %1$s</string>
+    <string name="categories_title">الفئات: %1$s</string>
+    <string name="categories_hint">OK: ظاهرة ← مقفلة ← مخفية</string>
+    <string name="category_visible">ظاهرة</string>
+    <string name="category_locked">مقفلة</string>
+    <string name="category_hidden">مخفية</string>
+    <string name="section_live">البث المباشر</string>
+    <string name="section_movies">الأفلام</string>
+    <string name="section_series">المسلسلات</string>
+</resources>

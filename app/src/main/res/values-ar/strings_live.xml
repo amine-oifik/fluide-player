@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Arabic translation of values/strings_live.xml (Live TV, programme guide and player overlays). -->
+<resources>
+    <plurals name="live_channel_count">
+        <item quantity="zero">%1$d قناة</item>
+        <item quantity="one">%1$d قناة</item>
+        <item quantity="two">%1$d قناتان</item>
+        <item quantity="few">%1$d قنوات</item>
+        <item quantity="many">%1$d قناة</item>
+        <item quantity="other">%1$d قناة</item>
+    </plurals>
+
+    <string name="live_group_all">الكل</string>
+
+    <!-- Programme on air: time left. -->
+    <string name="live_remaining">يتبقى %1$s</string>
+    <!-- Programme to come: time before it starts. -->
+    <string name="live_starts_in">بعد %1$s</string>
+    <!-- Video player: time at which the video ends. -->
+    <string name="live_ends_at">ينتهي عند %1$s</string>
+    <string name="live_upcoming_badge">قريبًا</string>
+
+    <string name="live_epg_play_live">OK: المشاهدة مباشرة</string>
+    <string name="live_epg_play_replay">OK: إعادة مشاهدة هذا البرنامج</string>
+
+    <string name="live_no_preview">لا توجد قناة قيد التشغيل</string>
+    <string name="live_no_preview_hint">اضغط OK على قناة لمشاهدتها هنا</string>
+
+    <string name="live_controls_hint">◀ ▶: ±10 ث   ·   OK: إيقاف مؤقت   ·   ▼: الخيارات</string>
+    <string name="live_number_label">القناة</string>
+
+    <string name="live_options_hint">OK: اختيار   ·   رجوع: إغلاق</string>
+    <string name="live_options_more">خيارات أخرى</string>
+</resources>

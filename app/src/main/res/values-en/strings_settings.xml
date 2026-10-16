@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- English translation of values/strings_settings.xml (in-app language). The language names are
+     translatable="false" in values/ and are not repeated here. -->
+<resources>
+    <string name="settings_language">Language</string>
+    <string name="settings_language_hint">Interface language; the screen reloads to apply it</string>
+    <string name="settings_language_system">System</string>
+</resources>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- English translation of values/strings_home.xml (home screen). -->
+<resources>
+    <string name="home_search">Search</string>
+    <string name="home_no_playlist">No active playlist</string>
+    <string name="home_pill_expires">Expires in %1$d d</string>
+
+    <string name="home_greeting_morning">Good morning</string>
+    <string name="home_greeting_afternoon">Good afternoon</string>
+    <string name="home_greeting_evening">Good evening</string>
+    <string name="home_welcome_title">Welcome to Fluide Player</string>
+    <string name="home_welcome_text">Your channels, movies and series, all in one place. Pick a section to get started.</string>
+    <string name="home_welcome_no_source">Add your Xtream Codes account or your M3U playlist to find your channels, movies and series here.</string>
+    <string name="home_add_playlist">Add a playlist</string>
+
+    <string name="home_hero_resume">Resume</string>
+    <string name="home_hero_watch">Watch</string>
+    <string name="home_hero_tag_resume">Resume watching</string>
+    <string name="home_hero_tag_new">New</string>
+    <string name="home_hero_watched">%1$d%% watched</string>
+    <string name="home_hero_all_movies">All movies</string>
+
+    <string name="home_tile_replay_hint">Watch past programs again</string>
+    <plurals name="home_tile_channels">
+        <item quantity="one">%1$s channel</item>
+        <item quantity="other">%1$s channels</item>
+    </plurals>
+    <plurals name="home_tile_movies">
+        <item quantity="one">%1$s movie</item>
+        <item quantity="other">%1$s movies</item>
+    </plurals>
+    <plurals name="home_tile_series">
+        <item quantity="one">%1$s series</item>
+        <item quantity="other">%1$s series</item>
+    </plurals>
+
+    <string name="home_row_continue">Continue watching</string>
+    <string name="home_row_favorite_channels">Favorite channels</string>
+    <string name="home_row_recent_channels">Recently watched</string>
+    <string name="home_row_recent_movies">Recently added movies</string>
+    <string name="home_row_recent_series">Recently added series</string>
+    <string name="home_see_all">See all</string>
+    <string name="home_badge_movie">Movie</string>
+    <string name="home_badge_series">Series</string>
+    <string name="home_no_programme">No program information</string>
+</resources>

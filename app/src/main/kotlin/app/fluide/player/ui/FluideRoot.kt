@@ -44,6 +44,7 @@ import app.fluide.player.ui.player.UpNextCard
 import app.fluide.player.ui.player.VideoControls
 import app.fluide.player.ui.player.WaitingIndicator
 import app.fluide.player.ui.player.ZapBanner
+import app.fluide.player.ui.search.SearchScreen
 import app.fluide.player.ui.settings.CategoriesScreen
 import app.fluide.player.ui.settings.SettingsScreen
 import app.fluide.player.ui.sources.SourcesScreen
@@ -68,7 +69,7 @@ fun FluideRoot(vm: MainViewModel) {
     val seriesFocus = remember { mutableIntStateOf(0) }
 
     BoxWithConstraints(Modifier.fillMaxSize().background(Color.Black)) {
-        val preview = ui.screen == Screen.LIVE || ui.screen == Screen.EPG
+        val preview = !ui.pip && (ui.screen == Screen.LIVE || ui.screen == Screen.EPG)
         val (origin, size) = LiveLayout.preview(maxWidth)
         PlayerSurface(
             player,
@@ -79,6 +80,9 @@ fun FluideRoot(vm: MainViewModel) {
             },
             aspect = settings.aspectMode,
         )
+
+        // Picture-in-picture: the small window shows the video only.
+        if (ui.pip) return@BoxWithConstraints
 
         when (ui.screen) {
             Screen.PLAYER -> {
@@ -117,6 +121,7 @@ fun FluideRoot(vm: MainViewModel) {
             Screen.SOURCES -> SourcesScreen(vm)
             Screen.SETTINGS -> SettingsScreen(vm)
             Screen.CATEGORIES -> CategoriesScreen(vm)
+            Screen.SEARCH -> SearchScreen(vm)
         }
 
         if (ui.screen == Screen.PLAYER) {

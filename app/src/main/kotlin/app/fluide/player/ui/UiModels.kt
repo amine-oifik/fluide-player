@@ -7,7 +7,7 @@ import app.fluide.player.data.MediaSort
 import app.fluide.player.data.Programme
 import app.fluide.player.data.Section
 
-enum class Screen { HOME, LIVE, PLAYER, MOVIES, SERIES, DETAILS, EPG, SOURCES, SETTINGS, CATEGORIES }
+enum class Screen { HOME, LIVE, PLAYER, MOVIES, SERIES, DETAILS, EPG, SOURCES, SETTINGS, CATEGORIES, SEARCH }
 
 /** What the full-screen player shows: a live channel (zapping), a video or a recording (seek bar). */
 enum class PlayerMode { LIVE, VOD, CATCHUP }
@@ -54,6 +54,8 @@ data class MainUiState(
     val upNext: UpNext? = null,
     /** True when the add-source form should open directly (first start). */
     val firstRun: Boolean = false,
+    /** Picture-in-picture window (phones and tablets): only the video is drawn. */
+    val pip: Boolean = false,
 )
 
 /** Entry of the group column of the guide. [label] null: use the localized name of [filter]. */

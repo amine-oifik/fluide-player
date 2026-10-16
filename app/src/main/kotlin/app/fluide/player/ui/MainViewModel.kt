@@ -40,7 +40,9 @@ import app.fluide.player.playback.PlaybackController
 import app.fluide.player.playback.PlaybackPhase
 import app.fluide.player.playback.PlaybackStats
 import app.fluide.player.playback.PlaybackUiState
+import app.fluide.player.ui.home.HomeFeed
 import app.fluide.player.ui.media.MediaBrowser
+import app.fluide.player.ui.search.GlobalSearch
 import coil.imageLoader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -113,6 +115,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     val movies = MediaBrowser(Section.MOVIES, media, viewModelScope)
     val series = MediaBrowser(Section.SERIES, media, viewModelScope)
+
+    /** Rows of the home screen (continue watching, recently added, favorite and recent channels). */
+    val homeFeed = HomeFeed(repository, media, viewModelScope)
+
+    /** Search over channels, movies and series at once. */
+    val globalSearch = GlobalSearch(repository, media, viewModelScope)
 
     val playback: StateFlow<PlaybackUiState> = controller.state
     val player: StateFlow<Player?> = controller.player
@@ -236,7 +244,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private fun reloadMedia(sourceId: Long, keepSelection: Boolean) {
         movies.load(sourceId, hidden[Section.MOVIES].orEmpty(), locked[Section.MOVIES].orEmpty(), keepSelection)
         series.load(sourceId, hidden[Section.SERIES].orEmpty(), locked[Section.SERIES].orEmpty(), keepSelection)
+        refreshHome()
     }
+
+    /** Reloads the rows of the home screen (after watching, favorites, rules or a new import). */
+    fun refreshHome() {
+        homeFeed.load(uiState.value.activeSourceId, excluded(Section.LIVE), excluded(Section.MOVIES), excluded(Section.SERIES))
+    }
+
+    private fun excluded(section: Section): Set<String> = hidden[section].orEmpty() + locked[section].orEmpty()
 
     /** Hidden and locked categories of each section, from the stored rules and the parental filter. */
     private suspend fun loadRules(sourceId: Long) {
@@ -307,7 +323,50 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun openHome() {
         leaveLive()
         uiState.update { it.copy(screen = Screen.HOME, controlsVisible = false, optionsVisible = false) }
+        refreshHome()
     }
+
+    // ------------------------------------------------------------------ global search and home rows
+
+    fun openSearch() {
+        leaveLive()
+        uiState.update { it.copy(screen = Screen.SEARCH) }
+    }
+
+    fun searchAll(query: String) {
+        globalSearch.search(query, uiState.value.activeSourceId, excluded(Section.LIVE), excluded(Section.MOVIES), excluded(Section.SERIES))
+    }
+
+    /** Details page of a movie or a series picked outside its grid (home rows, search). */
+    fun openMovieById(id: Long) {
+        leaveLive()
+        openDetails(Section.MOVIES, id, from = uiState.value.screen)
+    }
+
+    fun openSeriesById(id: Long) {
+        leaveLive()
+        openDetails(Section.SERIES, id, from = uiState.value.screen)
+    }
+
+    /** A channel picked outside the Live TV list (home rows, search): straight to full screen. */
+    fun playChannelFromHome(channelId: Long) {
+        leaveLive()
+        zapIds = allIds.takeIf { channelId in it } ?: longArrayOf(channelId)
+        currentChannelId = 0L
+        zapJob?.cancel()
+        zapGate.reset()
+        uiState.update { it.copy(screen = Screen.PLAYER, playerMode = PlayerMode.LIVE) }
+        playId(channelId)
+    }
+
+    /** The activity entered or left picture-in-picture: overlays are hidden in the small window. */
+    fun setPictureInPicture(active: Boolean) {
+        uiState.update { it.copy(pip = active, controlsVisible = false, optionsVisible = false, bannerVisible = if (active) false else it.bannerVisible) }
+    }
+
+    /** True while a stream plays full screen: leaving the app then opens picture-in-picture. */
+    fun isPlayingFullScreen(): Boolean =
+        uiState.value.screen == Screen.PLAYER && playback.value.phase != PlaybackPhase.IDLE && playback.value.phase != PlaybackPhase.ENDED
 
     /** Live TV: the last channel starts in the preview. */
     fun openLive(filter: ChannelFilter = ChannelFilter.All) {
@@ -414,7 +473,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
             Screen.MOVIES -> if (movies.browser.value.query.isNotEmpty()) movies.search("") else openHome()
             Screen.SERIES -> if (series.browser.value.query.isNotEmpty()) series.search("") else openHome()
-            Screen.DETAILS -> uiState.update { it.copy(screen = detailsFrom) }
+            Screen.DETAILS -> if (detailsFrom == Screen.HOME) openHome() else uiState.update { it.copy(screen = detailsFrom) }
             Screen.EPG -> openGuide()
             Screen.SOURCES -> if (sourceManager.sources.value.isEmpty()) {
                 uiState.update { it.copy(exitDialog = true) }
@@ -422,6 +481,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 openHome()
             }
             Screen.SETTINGS -> openHome()
+            Screen.SEARCH -> if (globalSearch.state.value.query.isNotEmpty()) {
+                globalSearch.clear()
+            } else {
+                openHome()
+            }
             Screen.CATEGORIES -> {
                 uiState.update { it.copy(screen = Screen.SETTINGS) }
                 applyRules()
@@ -1079,8 +1143,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         browser.select(filter)
     }
 
-    private fun openDetails(section: Section, id: Long) {
-        detailsFrom = if (section == Section.SERIES) Screen.SERIES else Screen.MOVIES
+    private fun openDetails(section: Section, id: Long, from: Screen? = null) {
+        detailsFrom = when {
+            from != null && (from == Screen.HOME || from == Screen.SEARCH) -> from
+            section == Section.SERIES -> Screen.SERIES
+            else -> Screen.MOVIES
+        }
         viewModelScope.launch {
             val record = withContext(Dispatchers.IO) { media.record(section, id) } ?: return@launch
             val source = sourceManager.sources.value.firstOrNull { it.id == record.sourceId }

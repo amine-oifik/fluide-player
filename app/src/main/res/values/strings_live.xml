@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Live TV, programme guide and player overlays (ui/live, ui/player). Other live_*, guide_*, epg_*,
+         options_* and error_* strings live in strings.xml. -->
+
+    <!-- Header of the Live TV screen: number of channels of the selected group. -->
+    <plurals name="live_channel_count">
+        <item quantity="one">%1$d chaîne</item>
+        <item quantity="many">%1$d chaînes</item>
+        <item quantity="other">%1$d chaînes</item>
+    </plurals>
+
+    <!-- Programme on air: time left ("Reste 23 min", "Reste 1 h 05"). -->
+    <string name="live_remaining">Reste %1$s</string>
+    <!-- Programme to come: time before it starts ("Dans 45 min"). -->
+    <string name="live_starts_in">Dans %1$s</string>
+    <!-- Video player: time at which the video ends ("Fin à 22:41"). -->
+    <string name="live_ends_at">Fin à %1$s</string>
+    <string name="live_upcoming_badge">À VENIR</string>
+
+    <!-- Details card of the programme guide: what OK does. -->
+    <string name="live_epg_play_live">OK : regarder en direct</string>
+    <string name="live_epg_play_replay">OK : revoir ce programme</string>
+
+    <!-- Preview of the Live TV screen when nothing is playing. -->
+    <string name="live_no_preview">Aucune chaîne en lecture</string>
+    <string name="live_no_preview_hint">OK sur une chaîne pour la regarder ici</string>
+
+    <!-- Video player controls: remote keys. -->
+    <string name="live_controls_hint">◀ ▶ : ±10 s   ·   OK : pause   ·   ▼ : options</string>
+    <!-- Channel number being typed with the number keys. -->
+    <string name="live_number_label">Chaîne</string>
+
+    <!-- Playback options panel. -->
+    <string name="live_options_hint">OK : choisir   ·   Retour : fermer</string>
+    <string name="live_options_more">Autres options</string>
+</resources>

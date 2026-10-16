@@ -1,5 +1,6 @@
 package app.fluide.player.ui.settings
 
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,7 +21,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -32,9 +36,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.fluide.player.AspectMode
 import app.fluide.player.BuildConfig
 import app.fluide.player.R
+import app.fluide.player.SettingsValues
 import app.fluide.player.data.Section
 import app.fluide.player.ui.MainViewModel
 import app.fluide.player.ui.components.AppIcon
+import app.fluide.player.ui.components.FluideColors
 import app.fluide.player.ui.components.FocusableRow
 import app.fluide.player.ui.components.Glyph
 import app.fluide.player.ui.components.ScreenSurface
@@ -44,6 +50,12 @@ import app.fluide.player.ui.components.TvButton
 fun SettingsScreen(vm: MainViewModel) {
     val settings by vm.settings.collectAsStateWithLifecycle()
     val back = remember { FocusRequester() }
+    val language = remember { FocusRequester() }
+    val activity = LocalActivity.current
+    // Survives the recreation that applies a new language: the focus then comes back to the language row.
+    var focusLanguage by rememberSaveable { mutableStateOf(false) }
+    // One change at a time: a second OK before the recreation would skip a language.
+    var switchingLanguage by remember { mutableStateOf(false) }
     ScreenSurface {
         LazyColumn(
             Modifier.fillMaxSize().padding(horizontal = 48.dp, vertical = 28.dp),
@@ -58,6 +70,21 @@ fun SettingsScreen(vm: MainViewModel) {
             }
             item {
                 Card(stringResource(R.string.settings_general)) {
+                    SettingChoice(
+                        label = stringResource(R.string.settings_language),
+                        hint = stringResource(R.string.settings_language_hint),
+                        value = languageName(settings.language),
+                        focusRequester = language,
+                    ) {
+                        if (switchingLanguage) return@SettingChoice
+                        switchingLanguage = true
+                        vm.updateSettings { it.copy(language = nextLanguage(it.language)) }
+                        focusLanguage = true
+                        // The activity resources are localized in attachBaseContext: recreate it to apply.
+                        val host = activity
+                        if (host == null) switchingLanguage = false
+                        host?.recreate()
+                    }
                     SettingSwitch(R.string.setting_resume, settings.resumeLastChannel) {
                         vm.updateSettings { it.copy(resumeLastChannel = !it.resumeLastChannel) }
                     }
@@ -128,8 +155,29 @@ fun SettingsScreen(vm: MainViewModel) {
             }
         }
     }
-    LaunchedEffect(Unit) { runCatching { back.requestFocus() } }
+    LaunchedEffect(Unit) {
+        val target = if (focusLanguage) language else back
+        focusLanguage = false
+        if (runCatching { target.requestFocus() }.isFailure) runCatching { back.requestFocus() }
+    }
 }
+
+/** Next language of the cycle: system, Français, English, العربية. */
+private fun nextLanguage(current: String): String {
+    val languages = SettingsValues.LANGUAGES
+    return languages[(languages.indexOf(current).coerceAtLeast(0) + 1) % languages.size]
+}
+
+/** Each language is named in its own language; "" is the system language. */
+@Composable
+private fun languageName(tag: String): String = stringResource(
+    when (tag) {
+        "fr" -> R.string.settings_language_fr
+        "en" -> R.string.settings_language_en
+        "ar" -> R.string.settings_language_ar
+        else -> R.string.settings_language_system
+    },
+)
 
 /** Manage categories: each one visible, locked (parental PIN) or hidden. */
 @Composable
@@ -198,6 +246,37 @@ private fun SettingSwitch(labelRes: Int, checked: Boolean, onToggle: () -> Unit)
     FocusableRow(onClick = onToggle, modifier = Modifier.fillMaxWidth()) {
         Text(stringResource(labelRes), modifier = Modifier.weight(1f))
         Switch(checked = checked, onCheckedChange = null)
+    }
+}
+
+/** A setting with a few values: OK moves to the next one, the current value is shown on the right. */
+@Composable
+private fun SettingChoice(
+    label: String,
+    hint: String,
+    value: String,
+    focusRequester: FocusRequester,
+    onClick: () -> Unit,
+) {
+    FocusableRow(onClick = onClick, modifier = Modifier.fillMaxWidth(), focusRequester = focusRequester) { focused ->
+        Column(Modifier.weight(1f).padding(vertical = 4.dp)) {
+            Text(label)
+            Text(
+                hint,
+                style = MaterialTheme.typography.bodySmall,
+                // Unspecified: the row's content color, readable on the focus highlight.
+                color = if (focused) Color.Unspecified else MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Spacer(Modifier.width(16.dp))
+        Text(
+            value,
+            color = if (focused) Color.Unspecified else FluideColors.Cyan,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1,
+        )
+        Spacer(Modifier.width(12.dp))
+        Text("›", color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 

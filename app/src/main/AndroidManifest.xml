@@ -28,14 +28,18 @@
 
         <!--
           configChanges: a remote, keyboard or HDMI/display change must not recreate the activity,
-          which would cut the stream for a second or more.
+          which would cut the stream for a second or more (entering or leaving picture-in-picture too).
+          supportsPictureInPicture: on phones and tablets, a stream keeps playing in a small window when
+          the user leaves the app (never on TV, see MainActivity.onUserLeaveHint).
         -->
         <activity
             android:name=".MainActivity"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation|uiMode|density|fontScale|layoutDirection|locale"
             android:exported="true"
             android:launchMode="singleTask"
+            android:resizeableActivity="true"
             android:screenOrientation="sensorLandscape"
+            android:supportsPictureInPicture="true"
             android:windowSoftInputMode="adjustPan">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

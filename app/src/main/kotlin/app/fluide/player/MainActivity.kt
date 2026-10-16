@@ -1,11 +1,20 @@
 package app.fluide.player
 
+import android.app.PictureInPictureParams
+import android.content.Context
+import android.content.pm.PackageManager
+import android.content.res.Configuration
+import android.content.res.Resources
+import android.os.Build
 import android.os.Bundle
+import android.os.LocaleList
+import android.util.Rational
 import android.view.KeyEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.addCallback
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -20,6 +29,7 @@ import app.fluide.player.ui.theme.FluideTheme
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 class MainActivity : ComponentActivity() {
 
@@ -28,6 +38,15 @@ class MainActivity : ComponentActivity() {
 
     /** Keys whose ACTION_DOWN was consumed: their ACTION_UP is consumed too. */
     private val consumedKeys = HashSet<Int>()
+
+    /**
+     * In-app language: the activity resources follow the language chosen in the settings (read straight from
+     * the preferences, the view model does not exist yet). The settings screen recreates the activity after
+     * a change.
+     */
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(localized(newBase))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,6 +90,33 @@ class MainActivity : ComponentActivity() {
         super.onStop()
     }
 
+    /**
+     * Phones and tablets: leaving the app (Home, recent apps) while a stream plays full screen keeps it
+     * playing in a small picture-in-picture window. Not on TV, where Home must stop the playback.
+     */
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+            !isInPictureInPictureMode &&
+            viewModel.isPlayingFullScreen() &&
+            packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE) &&
+            !viewModel.device.isTv
+        ) {
+            val params = PictureInPictureParams.Builder()
+                .setAspectRatio(Rational(16, 9))
+                .build()
+            // Throws when the system refuses (PiP disabled for the app in the system settings...).
+            runCatching { enterPictureInPictureMode(params) }
+        }
+    }
+
+    /** The overlays (banner, controls, options) are hidden in the small window. */
+    @RequiresApi(Build.VERSION_CODES.O)
+    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+        viewModel.setPictureInPicture(isInPictureInPictureMode)
+    }
+
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
         if (hasFocus) enterImmersiveMode()
@@ -104,5 +150,44 @@ class MainActivity : ComponentActivity() {
             hide(WindowInsetsCompat.Type.systemBars())
             systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
+    }
+
+    /**
+     * Wraps [base] with the chosen language. Only the locale is overridden (sparse configuration): size,
+     * orientation and density keep following the window, which matters because this activity handles those
+     * changes itself (rotation, picture-in-picture) instead of being recreated.
+     */
+    private fun localized(base: Context): Context {
+        val tag = runCatching { Settings.storedLanguage(base) }.getOrDefault("")
+        if (tag.isEmpty()) {
+            if (localeOverridden) restoreSystemLocale()
+            return base
+        }
+        // A plain language tag: before Android 9 the resource matcher reads extensions (-u-...) as regions.
+        val locale = Locale.forLanguageTag(tag)
+        val chosen = LocaleList(locale)
+        // Formatting (dates, numbers) and the layout direction follow the chosen language too.
+        LocaleList.setDefault(chosen)
+        Locale.setDefault(locale)
+        localeOverridden = true
+        // Empty configuration (every field undefined) + the locale: a delta applied over the window's own one.
+        val config = Configuration()
+        config.setLocales(chosen)
+        return base.createConfigurationContext(config)
+    }
+
+    /** Back to "system language" after an override in this process: the default locale was changed by hand. */
+    private fun restoreSystemLocale() {
+        val system = Resources.getSystem().configuration.locales
+        if (system.size() > 0) {
+            LocaleList.setDefault(system)
+            Locale.setDefault(system.get(0))
+        }
+        localeOverridden = false
+    }
+
+    private companion object {
+        /** True once this process replaced the default locale with the in-app language. */
+        var localeOverridden = false
     }
 }

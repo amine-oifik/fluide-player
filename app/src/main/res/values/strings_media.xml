@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Movies / series grid and details pages (ui/media). Other media_*, sort_* and details_* strings live in strings.xml. -->
+    <string name="media_categories">Catégories</string>
+    <string name="media_empty_hint">Essayez une autre catégorie ou une autre recherche.</string>
+
+    <string name="media_kicker_movie">Film</string>
+    <string name="media_kicker_series">Série</string>
+    <!-- Under the Resume button: time left in the movie ("Reste 42 min"). -->
+    <string name="media_remaining">Reste %1$s</string>
+
+    <!-- Season pill: number of episodes ("10 ép."). -->
+    <string name="media_season_episodes">%1$d ép.</string>
+    <!-- Badge of the episode to continue with: started, or the next one to watch. -->
+    <string name="media_episode_current">En cours</string>
+    <string name="media_episode_next">À suivre</string>
+    <!-- Title of an episode that has none. -->
+    <string name="media_episode_label">Épisode %1$d</string>
+</resources>

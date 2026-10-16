@@ -1,6 +1,7 @@
 package app.fluide.player
 
 import android.content.Context
+import android.content.SharedPreferences
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,15 +30,20 @@ data class SettingsValues(
     val startOnBoot: Boolean = false,
     /** Hours of the clock: true 24 h, false 12 h. */
     val clock24h: Boolean = true,
+    /** Interface language as a BCP 47 tag: "" follows the system, otherwise one of [LANGUAGES]. */
+    val language: String = "",
 ) {
     companion object {
         const val DEFAULT_PIN = "0000"
+
+        /** Languages offered in the settings, in their cycling order ("" = system language). */
+        val LANGUAGES: List<String> = listOf("", "fr", "en", "ar")
     }
 }
 
 /** Small key-value settings, exposed as a flow for the UI. */
 class Settings(context: Context) {
-    private val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+    private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     private val state = MutableStateFlow(read())
     val values: StateFlow<SettingsValues> = state.asStateFlow()
 
@@ -61,6 +67,7 @@ class Settings(context: Context) {
             .putBoolean(KEY_AUTO_NEXT, next.autoNextEpisode)
             .putBoolean(KEY_BOOT, next.startOnBoot)
             .putBoolean(KEY_CLOCK, next.clock24h)
+            .putString(KEY_LANGUAGE, next.language)
             .apply()
         state.value = next
     }
@@ -80,21 +87,34 @@ class Settings(context: Context) {
         autoNextEpisode = prefs.getBoolean(KEY_AUTO_NEXT, true),
         startOnBoot = prefs.getBoolean(KEY_BOOT, false),
         clock24h = prefs.getBoolean(KEY_CLOCK, true),
+        language = storedLanguage(prefs),
     )
 
-    private companion object {
-        const val KEY_RESUME = "resume_last_channel"
-        const val KEY_AFR = "auto_frame_rate"
-        const val KEY_TUNNELING = "tunneling"
-        const val KEY_PASSTHROUGH = "audio_passthrough"
-        const val KEY_STATS = "show_stats"
-        const val KEY_ACTIVE_SOURCE = "active_source"
-        const val KEY_LAST_CHANNEL = "last_channel"
-        const val KEY_PARENTAL = "parental_enabled"
-        const val KEY_PIN = "parental_pin"
-        const val KEY_ASPECT = "aspect_mode"
-        const val KEY_AUTO_NEXT = "auto_next_episode"
-        const val KEY_BOOT = "start_on_boot"
-        const val KEY_CLOCK = "clock_24h"
+    companion object {
+        private const val PREFS_NAME = "settings"
+        private const val KEY_RESUME = "resume_last_channel"
+        private const val KEY_AFR = "auto_frame_rate"
+        private const val KEY_TUNNELING = "tunneling"
+        private const val KEY_PASSTHROUGH = "audio_passthrough"
+        private const val KEY_STATS = "show_stats"
+        private const val KEY_ACTIVE_SOURCE = "active_source"
+        private const val KEY_LAST_CHANNEL = "last_channel"
+        private const val KEY_PARENTAL = "parental_enabled"
+        private const val KEY_PIN = "parental_pin"
+        private const val KEY_ASPECT = "aspect_mode"
+        private const val KEY_AUTO_NEXT = "auto_next_episode"
+        private const val KEY_BOOT = "start_on_boot"
+        private const val KEY_CLOCK = "clock_24h"
+        private const val KEY_LANGUAGE = "language"
+
+        /**
+         * The interface language ("" = system) read straight from the preferences. MainActivity needs it in
+         * attachBaseContext, before the view model and the [Settings] instance exist.
+         */
+        fun storedLanguage(context: Context): String =
+            storedLanguage(context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE))
+
+        private fun storedLanguage(prefs: SharedPreferences): String =
+            prefs.getString(KEY_LANGUAGE, null)?.takeIf { it in SettingsValues.LANGUAGES }.orEmpty()
     }
 }

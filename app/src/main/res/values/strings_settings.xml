@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Settings screen: in-app language. -->
+<resources>
+    <string name="settings_language">Langue</string>
+    <string name="settings_language_hint">Langue de l\'interface ; l\'écran se recharge pour l\'appliquer</string>
+    <string name="settings_language_system">Système</string>
+    <!-- Each language is shown in its own language, whatever the current one. -->
+    <string name="settings_language_fr" translatable="false">Français</string>
+    <string name="settings_language_en" translatable="false">English</string>
+    <string name="settings_language_ar" translatable="false">العربية</string>
+</resources>

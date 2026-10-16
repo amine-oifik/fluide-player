@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Global search screen (ui/search/SearchScreen.kt). -->
+    <string name="search_back">Retour</string>
+    <string name="search_field_hint">Chaîne, film ou série…</string>
+
+    <!-- Empty query: hint and examples. -->
+    <string name="search_hint_title">Tout votre catalogue, une seule recherche</string>
+    <string name="search_hint_body">Tapez quelques lettres : les chaînes, les films et les séries correspondants s\'affichent au fil de la saisie.</string>
+    <string name="search_catalog">%1$s chaînes · %2$s films · %3$s séries dans cette playlist</string>
+    <string name="search_try">Essayez</string>
+    <string-array name="search_examples">
+        <item>Sport</item>
+        <item>Info</item>
+        <item>Cinéma</item>
+        <item>Musique</item>
+        <item>Enfants</item>
+        <item>Docu</item>
+    </string-array>
+    <string name="search_remote_hint">↓ pour parcourir les résultats · OK pour ouvrir · Retour pour effacer</string>
+    <string name="search_no_source">Aucune playlist active : ajoutez-en une pour pouvoir lancer une recherche.</string>
+    <string name="search_add_source">Ajouter une playlist</string>
+
+    <!-- Results. -->
+    <string name="search_section_channels">Chaînes</string>
+    <string name="search_section_movies">Films</string>
+    <string name="search_section_series">Séries</string>
+    <string name="search_action_watch">OK : regarder en direct</string>
+    <string name="search_action_details">OK : voir la fiche</string>
+    <string name="search_count_capped">%1$d+</string>
+    <plurals name="search_results">
+        <item quantity="one">%1$d résultat pour « %2$s »</item>
+        <item quantity="many">%1$d résultats pour « %2$s »</item>
+        <item quantity="other">%1$d résultats pour « %2$s »</item>
+    </plurals>
+    <string name="search_searching">Recherche en cours…</string>
+    <string name="search_no_programme">Programme non communiqué</string>
+    <string name="search_see_all">Tout voir</string>
+    <string name="search_see_all_live">dans la TV en direct</string>
+    <string name="search_see_all_movies">dans les films</string>
+    <string name="search_see_all_series">dans les séries</string>
+
+    <!-- No result. -->
+    <string name="search_empty_title">Aucun résultat pour « %1$s »</string>
+    <string name="search_empty_body">Vérifiez l\'orthographe ou essayez un mot plus court. Les catégories masquées ou verrouillées ne sont pas incluses.</string>
+    <string name="search_empty_action">Nouvelle recherche</string>
+</resources>

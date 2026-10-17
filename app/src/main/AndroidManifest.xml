@@ -17,6 +17,7 @@
       that lives in this device's Keystore, so a restored backup could not be read anyway.
     -->
     <application
+        android:localeConfig="@xml/locales_config"
         android:name=".FluideApp"
         android:allowBackup="false"
         android:banner="@drawable/tv_banner"

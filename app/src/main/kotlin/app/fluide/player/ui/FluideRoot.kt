@@ -96,7 +96,7 @@ fun FluideRoot(vm: MainViewModel) {
                 )
                 playback.error?.let { ErrorOverlay(it, onRetry = vm::retry, modifier = Modifier.align(Alignment.Center)) }
                 if (ui.playerMode == PlayerMode.LIVE) {
-                    ZapBanner(ui.banner, ui.bannerVisible, Modifier.align(Alignment.BottomCenter))
+                    ZapBanner(ui.banner, ui.bannerVisible, Modifier.align(Alignment.BottomCenter), clock24h = settings.clock24h)
                     if (ui.numberEntry.isNotEmpty()) NumberEntry(ui.numberEntry, Modifier.align(Alignment.TopEnd))
                 } else {
                     VideoControls(

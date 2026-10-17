@@ -73,6 +73,17 @@ application n'est repris** : tout est réécrit pour Fluide Player.
 | Contrôle parental (code à 4 chiffres), gérer / masquer les catégories | Code parental (0000 par défaut), catégories adultes verrouillées, chaque catégorie visible / verrouillée / masquée |
 | Lecteur externe, démarrage automatique, vider le cache | « Ouvrir avec… » (VLC, MX…), lancement au démarrage, vider le cache images, effacer l'historique |
 
+### Au-delà de la référence
+
+| Fonction | Détail |
+|---|---|
+| Identité propre | Logo Fluide (triangle de lecture traversé d'une vague, bleu → cyan), icône, bannière Android TV, thème « verre » bleu nuit |
+| Accueil personnalisé | Bannière à la une, « Continuer à regarder », chaînes favorites et récentes, films et séries ajoutés récemment |
+| Recherche globale | Un seul champ pour les chaînes, les films et les séries, résultats surlignés |
+| Image dans l'image | Sur téléphone et tablette, quitter un flux en plein écran le garde dans une petite fenêtre |
+| Langues | Français, anglais et arabe (de droite à gauche), au choix dans les réglages ou dans les réglages Android (13+) |
+| Fiches enrichies | Fond flou, puces genre / année / durée / note, saisons en pastilles, épisodes avec progression |
+
 **Volontairement non repris** : le système d'activation payant de la référence (adresse MAC, « device key »,
 code d'activation, abonnement, envoi des playlists par leur site), leurs serveurs, l'émulation de boîtier
 MAG / portail Stalker, les lecteurs VLC / IJK embarqués (Fluide garde son moteur Media3 anti-gel), la météo
@@ -185,7 +196,7 @@ ou la barre de lecture (vidéo). Retour sur l'accueil : quitter.
   Pour l'audio MP2 / AC-3 sur les box sans décodeur : ajouter l'extension FFmpeg de Media3
   (`decoder_ffmpeg`, à compiler avec le NDK) — elle est déjà activée par `EXTENSION_RENDERER_MODE_ON`.
 - Pas de portail Stalker / MAG (connexion par adresse MAC).
-- Pas encore : enregistrement, multi-écran, image dans l'image, interface en d'autres langues que le français.
+- Pas encore : enregistrement, multi-écran.
 - Préchargement « lecteur complet » d'une chaîne voisine (2ᵉ décodeur) non activé : sur IPTV en direct il
   coûte une connexion permanente ; le `DefaultPreloadManager` de Media3 a été écarté pour le live (données
   préchargées périmées). Le préchargement DNS + playlist est en place.

@@ -7,7 +7,7 @@ import app.fluide.player.data.MediaSort
 import app.fluide.player.data.Programme
 import app.fluide.player.data.Section
 
-enum class Screen { HOME, LIVE, PLAYER, MOVIES, SERIES, DETAILS, EPG, SOURCES, SETTINGS, CATEGORIES, SEARCH }
+enum class Screen { HOME, LIVE, PLAYER, MOVIES, SERIES, DETAILS, EPG, SOURCES, SETTINGS, CATEGORIES, SEARCH, MULTIVIEW, TVGUIDE, ACCOUNT }
 
 /** What the full-screen player shows: a live channel (zapping), a video or a recording (seek bar). */
 enum class PlayerMode { LIVE, VOD, CATCHUP }

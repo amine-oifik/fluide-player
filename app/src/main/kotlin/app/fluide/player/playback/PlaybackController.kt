@@ -214,6 +214,19 @@ class PlaybackController(
         }
     }
 
+    /** Playback speed chosen by the user for a video (0.5..2); live channels always play at 1x. */
+    val userSpeed: Float get() = session?.userSpeed ?: 1f
+
+    fun setUserSpeed(speed: Float) {
+        val s = session ?: return
+        if (!s.channel.vod) return
+        val value = speed.coerceIn(0.5f, 2f)
+        s.userSpeed = value
+        s.speed = value
+        s.requestedSpeed = value
+        built?.player?.playbackParameters = PlaybackParameters(value)
+    }
+
     fun seekBy(deltaMs: Long) {
         val player = built?.player ?: return
         seekTo(player.currentPosition + deltaMs)
@@ -338,6 +351,9 @@ class PlaybackController(
         var startPositionMs = 0L
         var lastPositionMs = 0L
         var lastDurationMs = 0L
+
+        /** Speed picked by the user (videos); the anti-stall governor leaves it alone. */
+        var userSpeed = 1f
     }
 
     private fun startSession(s: Session, keepPosition: Boolean) {
@@ -592,6 +608,10 @@ class PlaybackController(
      */
     private fun governSpeed(s: Session, player: ExoPlayer, bufferedMs: Long) {
         val b = built ?: return
+        if (s.channel.vod && s.userSpeed != 1f) {
+            if (player.playbackParameters.speed != s.userSpeed) player.playbackParameters = PlaybackParameters(s.userSpeed)
+            return
+        }
         val desired = when {
             isLiveSpeedManagedByMedia3(player) || !s.speedSupported || b.config.tunneling -> 1f
             player.playbackState != Player.STATE_READY || !player.playWhenReady -> s.speed

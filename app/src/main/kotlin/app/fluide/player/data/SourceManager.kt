@@ -194,6 +194,12 @@ class SourceManager(
         reloadNow()
     }
 
+    /**
+     * Shift applied to the guide of a playlist, in minutes (-720..720), for providers whose XMLTV times
+     * are off. (Contract: stored and applied by the EPG offset work.)
+     */
+    suspend fun setEpgOffset(id: Long, minutes: Int) = Unit
+
     /** Xtream live container: "ts" (MPEG-TS) or "m3u8" (HLS). Applies at the next refresh. */
     suspend fun setStreamFormat(id: Long, format: String) = withContext(Dispatchers.IO) {
         database.writableDatabase.execSQL(

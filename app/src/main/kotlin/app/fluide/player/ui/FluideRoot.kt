@@ -44,7 +44,11 @@ import app.fluide.player.ui.player.UpNextCard
 import app.fluide.player.ui.player.VideoControls
 import app.fluide.player.ui.player.WaitingIndicator
 import app.fluide.player.ui.player.ZapBanner
+import app.fluide.player.ui.account.AccountScreen
+import app.fluide.player.ui.multiview.MultiViewScreen
+import app.fluide.player.ui.reminders.ReminderPopup
 import app.fluide.player.ui.search.SearchScreen
+import app.fluide.player.ui.tvguide.TvGuideScreen
 import app.fluide.player.ui.settings.CategoriesScreen
 import app.fluide.player.ui.settings.SettingsScreen
 import app.fluide.player.ui.sources.SourcesScreen
@@ -122,7 +126,12 @@ fun FluideRoot(vm: MainViewModel) {
             Screen.SETTINGS -> SettingsScreen(vm)
             Screen.CATEGORIES -> CategoriesScreen(vm)
             Screen.SEARCH -> SearchScreen(vm)
+            Screen.MULTIVIEW -> MultiViewScreen(vm)
+            Screen.TVGUIDE -> TvGuideScreen(vm)
+            Screen.ACCOUNT -> AccountScreen(vm)
         }
+        // A programme the user asked to be reminded of is starting (any screen but multi-screen).
+        if (ui.screen != Screen.MULTIVIEW) ReminderPopup(vm)
 
         if (ui.screen == Screen.PLAYER) {
             WaitingIndicator(playback.waitingSinceMs, Modifier.align(Alignment.TopEnd).padding(32.dp))

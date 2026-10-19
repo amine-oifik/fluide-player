@@ -32,12 +32,19 @@ data class SettingsValues(
     val clock24h: Boolean = true,
     /** Interface language as a BCP 47 tag: "" follows the system, otherwise one of [LANGUAGES]. */
     val language: String = "",
+    /** Colour theme of the interface, one of [THEMES]. */
+    val theme: String = THEMES.first(),
+    /** Size of the subtitles, 1 = default (0.75 to 2). */
+    val subtitleScale: Float = 1f,
 ) {
     companion object {
         const val DEFAULT_PIN = "0000"
 
         /** Languages offered in the settings, in their cycling order ("" = system language). */
         val LANGUAGES: List<String> = listOf("", "fr", "en", "ar")
+
+        /** Colour themes offered in the settings, in their cycling order (ids, see ui/theme). */
+        val THEMES: List<String> = listOf("fluide", "rubis", "emeraude", "ambre", "amethyste")
     }
 }
 
@@ -48,6 +55,12 @@ class Settings(context: Context) {
     val values: StateFlow<SettingsValues> = state.asStateFlow()
 
     val current: SettingsValues get() = state.value
+
+    /** Re-reads the stored values (after a backup was restored). */
+    @Synchronized
+    fun reload() {
+        state.value = read()
+    }
 
     @Synchronized
     fun update(transform: (SettingsValues) -> SettingsValues) {
@@ -68,6 +81,8 @@ class Settings(context: Context) {
             .putBoolean(KEY_BOOT, next.startOnBoot)
             .putBoolean(KEY_CLOCK, next.clock24h)
             .putString(KEY_LANGUAGE, next.language)
+            .putString(KEY_THEME, next.theme)
+            .putFloat(KEY_SUBTITLE_SCALE, next.subtitleScale)
             .apply()
         state.value = next
     }
@@ -88,6 +103,8 @@ class Settings(context: Context) {
         startOnBoot = prefs.getBoolean(KEY_BOOT, false),
         clock24h = prefs.getBoolean(KEY_CLOCK, true),
         language = storedLanguage(prefs),
+        theme = storedTheme(prefs),
+        subtitleScale = prefs.getFloat(KEY_SUBTITLE_SCALE, 1f).coerceIn(0.75f, 2f),
     )
 
     companion object {
@@ -106,6 +123,15 @@ class Settings(context: Context) {
         private const val KEY_BOOT = "start_on_boot"
         private const val KEY_CLOCK = "clock_24h"
         private const val KEY_LANGUAGE = "language"
+        private const val KEY_THEME = "theme"
+        private const val KEY_SUBTITLE_SCALE = "subtitle_scale"
+
+        /** The colour theme read straight from the preferences (before the view model exists). */
+        fun storedTheme(context: Context): String =
+            storedTheme(context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE))
+
+        private fun storedTheme(prefs: SharedPreferences): String =
+            prefs.getString(KEY_THEME, null)?.takeIf { it in SettingsValues.THEMES } ?: SettingsValues.THEMES.first()
 
         /**
          * The interface language ("" = system) read straight from the preferences. MainActivity needs it in

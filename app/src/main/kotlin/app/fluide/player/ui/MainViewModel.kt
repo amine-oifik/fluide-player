@@ -42,7 +42,12 @@ import app.fluide.player.playback.PlaybackStats
 import app.fluide.player.playback.PlaybackUiState
 import app.fluide.player.ui.home.HomeFeed
 import app.fluide.player.ui.media.MediaBrowser
+import app.fluide.player.ui.multiview.MultiViewController
+import app.fluide.player.ui.reminders.Reminder
+import app.fluide.player.ui.reminders.Reminders
 import app.fluide.player.ui.search.GlobalSearch
+import app.fluide.player.ui.tools.SpeedTest
+import app.fluide.player.ui.tvguide.TvGuideController
 import coil.imageLoader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -122,6 +127,24 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     /** Search over channels, movies and series at once. */
     val globalSearch = GlobalSearch(repository, media, viewModelScope)
 
+    /** 2 or 4 live channels at once. */
+    val multiView = MultiViewController(application, graph.http, repository, viewModelScope) { excluded(Section.LIVE) }
+
+    /** Full TV guide (channels down, time across). */
+    val tvGuide = TvGuideController(repository, viewModelScope)
+
+    /** Programme reminders. */
+    val reminders = Reminders(application, viewModelScope)
+
+    /** Connection test against the active playlist's server. */
+    val speedTest = SpeedTest(graph.http, repository, viewModelScope)
+
+    private val sleepAt = MutableStateFlow(0L)
+
+    /** End of the sleep timer (System.currentTimeMillis), 0 when off. */
+    val sleepTimerEndsAt: StateFlow<Long> = sleepAt.asStateFlow()
+    private var sleepJob: Job? = null
+
     val playback: StateFlow<PlaybackUiState> = controller.state
     val player: StateFlow<Player?> = controller.player
     val settings: StateFlow<SettingsValues> = settingsStore.values
@@ -194,16 +217,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     // ------------------------------------------------------------------ lifecycle
 
-    fun onStart() = controller.onStart()
+    fun onStart() {
+        controller.onStart()
+        if (uiState.value.screen == Screen.MULTIVIEW) multiView.onStart()
+    }
 
     fun onStop() {
         saveVideoProgress()
         controller.onStop()
+        multiView.onStop()
     }
 
     override fun onCleared() {
         saveVideoProgress()
         controller.release()
+        multiView.release()
     }
 
     fun stats(): PlaybackStats? = controller.stats()
@@ -364,6 +392,141 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         uiState.update { it.copy(pip = active, controlsVisible = false, optionsVisible = false, bannerVisible = if (active) false else it.bannerVisible) }
     }
 
+    // ------------------------------------------------------------------ multi-screen, TV guide, account
+
+    /** Multi-screen with [layout] tiles (2 or 4); the channel playing (if any) goes in the first tile. */
+    fun openMultiView(layout: Int = 4) {
+        if (allIds.isEmpty()) {
+            toast(R.string.home_no_channels)
+            return
+        }
+        val first = currentChannelId.takeIf { it != 0L } ?: guideIds.firstOrNull() ?: allIds.first()
+        leaveLive()
+        controller.stop()
+        uiState.update { it.copy(screen = Screen.MULTIVIEW) }
+        multiView.open(uiState.value.activeSourceId, layout, first)
+    }
+
+    fun openTvGuide() {
+        if (allIds.isEmpty()) {
+            toast(R.string.home_no_channels)
+            return
+        }
+        leaveLive()
+        tvGuide.load(uiState.value.activeSourceId, excluded(Section.LIVE))
+        uiState.update { it.copy(screen = Screen.TVGUIDE) }
+    }
+
+    fun openAccount() {
+        leaveLive()
+        val id = uiState.value.activeSourceId
+        if (sources.value.firstOrNull { it.id == id }?.type == SourceType.XTREAM) {
+            viewModelScope.launch { sourceManager.refreshAccount(id) }
+        }
+        uiState.update { it.copy(screen = Screen.ACCOUNT) }
+    }
+
+    fun runSpeedTest() = speedTest.run(uiState.value.activeSourceId)
+
+    /**
+     * A programme picked in a guide: the live channel when it is on air, its recording when it is in the
+     * past (catch-up), a reminder when it is in the future.
+     */
+    fun playProgrammeOf(channelId: Long, programme: Programme) {
+        val nowSec = System.currentTimeMillis() / 1_000
+        viewModelScope.launch {
+            val row = withContext(Dispatchers.IO) { repository.row(channelId, nowSec) } ?: return@launch
+            when {
+                programme.startSec <= nowSec && programme.stopSec > nowSec -> playChannelFromHome(channelId)
+                programme.stopSec <= nowSec && row.catchupDays > 0 &&
+                    programme.startSec >= nowSec - row.catchupDays * 86_400L -> playRecording(channelId, programme, nowSec)
+                programme.startSec > nowSec -> addReminder(channelId, programme)
+                else -> toast(R.string.epg_no_recording)
+            }
+        }
+    }
+
+    /** Reminder for a future programme of [channelId] (toggles it off when already set). */
+    fun addReminder(channelId: Long, programme: Programme) {
+        val source = uiState.value.activeSourceId
+        viewModelScope.launch {
+            val row = withContext(Dispatchers.IO) { repository.row(channelId, 0) } ?: return@launch
+            val existing = reminders.all.value.firstOrNull {
+                it.sourceId == source && it.channelName == row.name && it.startSec == programme.startSec
+            }
+            if (existing != null) {
+                reminders.remove(existing.id)
+                toast(R.string.reminder_removed)
+            } else if (reminders.add(source, row.name, programme)) {
+                toast(R.string.reminder_added)
+            }
+        }
+    }
+
+    /** "Watch" on a due reminder: its channel full screen. */
+    fun watchReminder(reminder: Reminder) {
+        reminders.dismissDue()
+        viewModelScope.launch {
+            if (reminder.sourceId != uiState.value.activeSourceId) activateSource(reminder.sourceId)
+            val id = withContext(Dispatchers.IO) { repository.idByName(reminder.sourceId, reminder.channelName) }
+            if (id == null) toast(R.string.home_no_channels) else playChannelFromHome(id)
+        }
+    }
+
+    /** Sleep timer: playback stops after [minutes] (0 turns it off). */
+    fun setSleepTimer(minutes: Int) {
+        sleepJob?.cancel()
+        if (minutes <= 0) {
+            sleepAt.value = 0L
+            return
+        }
+        sleepAt.value = System.currentTimeMillis() + minutes * 60_000L
+        sleepJob = viewModelScope.launch {
+            delay(minutes * 60_000L)
+            sleepAt.value = 0L
+            saveVideoProgress()
+            multiView.release()
+            controller.stop()
+            uiState.update { it.copy(screen = Screen.HOME, controlsVisible = false, optionsVisible = false, upNext = null) }
+            toast(R.string.sleep_timer_done)
+        }
+    }
+
+    /** Playback speed of the video playing (0.5..2), ignored on live channels. */
+    fun setPlaybackSpeed(speed: Float) = controller.setUserSpeed(speed)
+
+    fun playbackSpeed(): Float = controller.userSpeed
+
+    /** Backup of playlists, favorites and settings to a file chosen by the user. */
+    fun exportBackup(uri: Uri) {
+        viewModelScope.launch {
+            val result = graph.backup.export(uri)
+            result.onSuccess { toast(R.string.backup_done, it) }.onFailure { toast(R.string.backup_failed, text = it.message ?: "") }
+        }
+    }
+
+    fun importBackup(uri: Uri) {
+        viewModelScope.launch {
+            val result = graph.backup.import(uri)
+            result.onSuccess { count ->
+                settingsStore.reload()
+                sourceManager.reload()
+                toast(R.string.restore_done, count)
+                for (source in sourceManager.sources.value) sourceManager.refreshIfStale(source.id)
+                val active = uiState.value.activeSourceId.takeIf { id -> sourceManager.sources.value.any { it.id == id } }
+                    ?: sourceManager.sources.value.firstOrNull()?.id
+                if (active != null) activate(active, resume = false)
+            }.onFailure { toast(R.string.restore_failed, text = it.message ?: "") }
+        }
+    }
+
+    fun setEpgOffset(sourceId: Long, minutes: Int) {
+        viewModelScope.launch {
+            sourceManager.setEpgOffset(sourceId, minutes)
+            sourceManager.refresh(sourceId, playlist = false, epg = true)
+        }
+    }
+
     /** True while a stream plays full screen: leaving the app then opens picture-in-picture. */
     fun isPlayingFullScreen(): Boolean =
         uiState.value.screen == Screen.PLAYER && playback.value.phase != PlaybackPhase.IDLE && playback.value.phase != PlaybackPhase.ENDED
@@ -481,6 +644,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 openHome()
             }
             Screen.SETTINGS -> openHome()
+            Screen.MULTIVIEW -> if (multiView.state.value.pickerSlot >= 0) {
+                multiView.closePicker()
+            } else {
+                multiView.release()
+                openHome()
+            }
+            Screen.TVGUIDE, Screen.ACCOUNT -> openHome()
             Screen.SEARCH -> if (globalSearch.state.value.query.isNotEmpty()) {
                 globalSearch.clear()
             } else {
@@ -1077,15 +1247,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 uiState.update { it.copy(screen = Screen.PLAYER, playerMode = PlayerMode.LIVE) }
             }
             programme.stopSec <= nowSec && state.catchupDays > 0 &&
-                programme.startSec >= nowSec - state.catchupDays * 86_400L -> playRecording(state, programme, nowSec)
-            programme.startSec > nowSec -> toast(R.string.epg_future)
+                programme.startSec >= nowSec - state.catchupDays * 86_400L -> playRecording(state.channelId, programme, nowSec)
+            programme.startSec > nowSec -> addReminder(state.channelId, programme)
             else -> toast(R.string.epg_no_recording)
         }
     }
 
-    private fun playRecording(state: EpgState, programme: Programme, nowSec: Long) {
+    /** Where the player goes back to after a recording: the programme guide it was picked from. */
+    private var recordingFrom = Screen.EPG
+
+    private fun playRecording(channelId: Long, programme: Programme, nowSec: Long) {
+        recordingFrom = if (uiState.value.screen == Screen.TVGUIDE) Screen.TVGUIDE else Screen.EPG
         viewModelScope.launch {
-            val channel = withContext(Dispatchers.IO) { repository.playable(state.channelId) } ?: return@launch
+            val channel = withContext(Dispatchers.IO) { repository.playable(channelId) } ?: return@launch
             val source = sourceManager.sources.value.firstOrNull { it.id == channel.sourceId }
             val zone = source?.serverTimezone?.let { TimeZone.getTimeZone(it) } ?: TimeZone.getDefault()
             val offset = zone.getOffset(programme.startSec * 1_000) / 1_000
@@ -1475,7 +1649,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val mode = uiState.value.playerMode
         controller.stop()
         vod = null
-        val back = if (mode == PlayerMode.CATCHUP) Screen.EPG else if (detailsState.value != null) Screen.DETAILS else Screen.HOME
+        val back = when {
+            mode == PlayerMode.CATCHUP -> recordingFrom
+            detailsState.value != null -> Screen.DETAILS
+            else -> Screen.HOME
+        }
         uiState.update { it.copy(screen = back, controlsVisible = false, optionsVisible = false, upNext = null, playerMode = PlayerMode.LIVE) }
         val d = detailsState.value
         if (back == Screen.DETAILS && d != null) {

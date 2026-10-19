@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Messages of the view model for the multi-screen, guide, reminders, sleep timer and backup features. -->
+    <string name="reminder_added">Rappel programmé</string>
+    <string name="reminder_removed">Rappel supprimé</string>
+    <string name="sleep_timer_done">Minuterie de veille : lecture arrêtée</string>
+    <string name="backup_done">Sauvegarde enregistrée : %1$d playlists</string>
+    <string name="backup_failed">Échec de la sauvegarde : %1$s</string>
+    <string name="restore_done">Restauration terminée : %1$d playlists</string>
+    <string name="restore_failed">Échec de la restauration : %1$s</string>
+</resources>

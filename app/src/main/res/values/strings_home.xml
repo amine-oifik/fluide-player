@@ -1,26 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Home screen (ui/home/HomeScreen.kt). Other home_* strings live in strings.xml. -->
-    <string name="home_search">Rechercher</string>
+
+    <!-- Tiles, actions and playlist status. -->
+    <string name="home_tile_guide">Guide TV</string>
+    <string name="home_tile_multiview">Multi-écran</string>
+    <string name="home_tile_search">Recherche</string>
+    <string name="home_action_account">Mon compte</string>
+    <string name="home_action_switch_playlist">Changer de playlist</string>
+    <string name="home_last_channel">Dernière chaîne : %1$s</string>
     <string name="home_no_playlist">Aucune playlist active</string>
-    <string name="home_pill_expires">Expire dans %1$d j</string>
-
-    <string name="home_greeting_morning">Bonjour</string>
-    <string name="home_greeting_afternoon">Bon après-midi</string>
-    <string name="home_greeting_evening">Bonsoir</string>
-    <string name="home_welcome_title">Bienvenue sur Fluide Player</string>
-    <string name="home_welcome_text">Vos chaînes, vos films et vos séries réunis au même endroit. Choisissez une rubrique pour commencer.</string>
-    <string name="home_welcome_no_source">Ajoutez votre compte Xtream Codes ou votre playlist M3U pour retrouver ici vos chaînes, vos films et vos séries.</string>
-    <string name="home_add_playlist">Ajouter une playlist</string>
-
-    <string name="home_hero_resume">Reprendre</string>
-    <string name="home_hero_watch">Regarder</string>
-    <string name="home_hero_tag_resume">Reprendre la lecture</string>
-    <string name="home_hero_tag_new">Nouveauté</string>
-    <string name="home_hero_watched">Vu à %1$d %%</string>
-    <string name="home_hero_all_movies">Tous les films</string>
-
-    <string name="home_tile_replay_hint">Revoir les programmes passés</string>
+    <string name="home_status_expired">Expiré</string>
+    <string name="home_status_unlimited">Sans expiration</string>
     <plurals name="home_tile_channels">
         <item quantity="one">%1$s chaîne</item>
         <item quantity="many">%1$s chaînes</item>
@@ -37,7 +28,36 @@
         <item quantity="other">%1$s séries</item>
     </plurals>
 
+    <!-- Bottom of the screen. -->
     <string name="home_row_continue">Continuer à regarder</string>
+    <string name="home_warning_expired">Votre abonnement a expiré. Contactez votre fournisseur pour le renouveler.</string>
+    <string name="home_warning_today">Votre abonnement expire aujourd\'hui. Contactez votre fournisseur pour le prolonger.</string>
+    <plurals name="home_warning_days">
+        <item quantity="one">Votre abonnement expire dans %1$d jour. Contactez votre fournisseur pour le prolonger.</item>
+        <item quantity="many">Votre abonnement expire dans %1$d jours. Contactez votre fournisseur pour le prolonger.</item>
+        <item quantity="other">Votre abonnement expire dans %1$d jours. Contactez votre fournisseur pour le prolonger.</item>
+    </plurals>
+
+    <!-- No playlist yet: the welcome card. -->
+    <string name="home_greeting_morning">Bonjour</string>
+    <string name="home_greeting_afternoon">Bon après-midi</string>
+    <string name="home_greeting_evening">Bonsoir</string>
+    <string name="home_welcome_title">Bienvenue sur Fluide Player</string>
+    <string name="home_welcome_no_source">Ajoutez votre compte Xtream Codes ou votre playlist M3U pour retrouver ici vos chaînes, vos films et vos séries.</string>
+    <string name="home_add_playlist">Ajouter une playlist</string>
+
+    <!-- Previous home layout (rows): no longer used, kept while values-en and values-ar translate them
+         (removing them here alone would make those translations extra). -->
+    <string name="home_search">Rechercher</string>
+    <string name="home_pill_expires">Expire dans %1$d j</string>
+    <string name="home_welcome_text">Vos chaînes, vos films et vos séries réunis au même endroit. Choisissez une rubrique pour commencer.</string>
+    <string name="home_hero_resume">Reprendre</string>
+    <string name="home_hero_watch">Regarder</string>
+    <string name="home_hero_tag_resume">Reprendre la lecture</string>
+    <string name="home_hero_tag_new">Nouveauté</string>
+    <string name="home_hero_watched">Vu à %1$d %%</string>
+    <string name="home_hero_all_movies">Tous les films</string>
+    <string name="home_tile_replay_hint">Revoir les programmes passés</string>
     <string name="home_row_favorite_channels">Chaînes favorites</string>
     <string name="home_row_recent_channels">Regardées récemment</string>
     <string name="home_row_recent_movies">Films ajoutés récemment</string>

@@ -230,7 +230,9 @@ class SpeedTest(private val http: HttpStack, private val channels: ChannelReposi
             meter.reset()
             val failure = try {
                 download(stream, meter)
-                return null
+                if (meter.usable()) return null
+                // Ended almost at once (tiny body, short error video...): try the next channel.
+                TestFailure(SpeedTestError.NO_DATA, "stream ended after ${meter.bytes} bytes")
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Throwable) {

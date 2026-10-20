@@ -68,7 +68,11 @@ class TvGuideController(private val channels: ChannelRepository, private val sco
 
     private var ids = LongArray(0)
     private var sourceId = 0L
+    /** Bumped by each list load: a late answer of an earlier load is ignored. */
     private var generation = 0
+
+    /** Bumped when the loaded pages are dropped: late pages of earlier requests are ignored. */
+    private var pageGeneration = 0
     private val pages = mutableStateMapOf<Int, Page>()
     private val loading = HashSet<Int>()
     private var loadJob: Job? = null
@@ -100,8 +104,7 @@ class TvGuideController(private val channels: ChannelRepository, private val sco
         loadJob?.cancel()
         generation++
         ids = LongArray(0)
-        pages.clear()
-        loading.clear()
+        invalidate()
         val nowSec = nowSec()
         anchorSec = nowSec
         mutable.update {
@@ -137,7 +140,7 @@ class TvGuideController(private val channels: ChannelRepository, private val sco
 
     /** Reloads the visible rows (guide imported again, EPG offset changed). */
     fun invalidate() {
-        generation++
+        pageGeneration++
         pages.clear()
         loading.clear()
     }
@@ -231,7 +234,7 @@ class TvGuideController(private val channels: ChannelRepository, private val sco
 
     private fun request(page: Int) {
         if (!loading.add(page)) return
-        val requested = generation
+        val requested = pageGeneration
         val first = page * PAGE
         if (first >= ids.size) {
             loading.remove(page)
@@ -248,7 +251,7 @@ class TvGuideController(private val channels: ChannelRepository, private val sco
                     }
                 }.getOrDefault(emptyList())
             }
-            if (requested != generation) return@launch
+            if (requested != pageGeneration) return@launch
             loading.remove(page)
             pages[page] = Page(fromSec, toSec, rows.associateBy { it.channel.id })
             if (pages.size > MAX_PAGES) {
@@ -274,7 +277,7 @@ class TvGuideController(private val channels: ChannelRepository, private val sco
         /** Last half hour (local time) at or before [sec]. */
         fun halfHourFloor(sec: Long): Long {
             val offset = TimeZone.getDefault().getOffset(sec * 1_000) / 1_000L
-            return sec - Math.floorMod(sec + offset, HALF_HOUR)
+            return sec - (sec + offset).mod(HALF_HOUR)
         }
     }
 }

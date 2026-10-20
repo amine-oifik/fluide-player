@@ -105,7 +105,7 @@ fun SpeedTestPanel(state: SpeedTestState, modifier: Modifier = Modifier, clock24
                 val time = remember(state.finishedAt, clock24h) {
                     SimpleDateFormat(if (clock24h) "HH:mm" else "h:mm a", Locale.getDefault()).format(Date(state.finishedAt))
                 }
-                Text(stringResource(R.string.account_speed_tested_at, time), color = FluideColors.Dim, fontSize = 12.sp, maxLines = 1)
+                Text(stringResource(R.string.account_speed_tested_at, time), color = FluideColors.Dim, fontSize = 12.sp, lineHeight = 16.sp, maxLines = 1)
             }
         }
         Spacer(Modifier.height(4.dp))
@@ -227,7 +227,7 @@ private fun Gauge(state: SpeedTestState) {
                         1f to blue,
                         center = center,
                     )
-                    val labelStyle = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
+                    val labelStyle = TextStyle(fontSize = 11.sp, lineHeight = 14.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
                     val texts = labels.map { measurer.measure(it, labelStyle) }
                     val marks = SCALE_KBPS.size - 1
                     fun pointAt(fraction: Float, r: Float): Offset {
@@ -326,6 +326,7 @@ private fun Gauge(state: SpeedTestState) {
                 stringResource(R.string.account_speed_unit),
                 color = FluideColors.Muted,
                 fontSize = 13.sp,
+                lineHeight = 18.sp,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
             )
@@ -341,15 +342,16 @@ private fun Metric(label: String, value: String, note: String?, noteColor: Color
             .border(1.dp, FluideColors.GlassBorder, MetricShape)
             .padding(horizontal = 12.dp, vertical = 8.dp),
     ) {
-        Text(label, color = FluideColors.Muted, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(label, color = FluideColors.Muted, fontSize = 12.sp, lineHeight = 16.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(value, color = FluideColors.Text, fontSize = 18.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+            Text(value, color = FluideColors.Text, fontSize = 18.sp, lineHeight = 23.sp, fontWeight = FontWeight.Bold, maxLines = 1)
             if (note != null) {
                 Spacer(Modifier.width(8.dp))
                 Text(
                     note,
                     color = noteColor,
                     fontSize = 12.sp,
+                    lineHeight = 16.sp,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -381,6 +383,7 @@ private fun Message(state: SpeedTestState) {
                 },
                 color = FluideColors.Soft,
                 fontSize = 15.sp,
+                lineHeight = 20.sp,
                 fontWeight = FontWeight.SemiBold,
                 textAlign = TextAlign.Center,
             )
@@ -389,12 +392,13 @@ private fun Message(state: SpeedTestState) {
                     stringResource(R.string.account_speed_error_title),
                     color = FluideColors.Warm,
                     fontSize = 17.sp,
+                    lineHeight = 22.sp,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
                 )
-                Text(stringResource(errorText(kind)), color = FluideColors.Soft, fontSize = 13.sp, textAlign = TextAlign.Center)
+                Text(stringResource(errorText(kind)), color = FluideColors.Soft, fontSize = 13.sp, lineHeight = 18.sp, textAlign = TextAlign.Center)
                 state.error?.let {
-                    Text(it, color = FluideColors.Dim, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(it, color = FluideColors.Dim, fontSize = 11.sp, lineHeight = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
             verdict != null -> {
@@ -402,15 +406,17 @@ private fun Message(state: SpeedTestState) {
                     stringResource(verdictText(verdict)),
                     color = verdictColor(verdict),
                     fontSize = 19.sp,
+                    lineHeight = 24.sp,
                     fontWeight = FontWeight.ExtraBold,
                     textAlign = TextAlign.Center,
                 )
-                Text(stringResource(verdictHint(verdict)), color = FluideColors.Muted, fontSize = 13.sp, textAlign = TextAlign.Center)
+                Text(stringResource(verdictHint(verdict)), color = FluideColors.Muted, fontSize = 13.sp, lineHeight = 18.sp, textAlign = TextAlign.Center)
             }
             else -> Text(
                 stringResource(R.string.account_speed_intro),
                 color = FluideColors.Muted,
                 fontSize = 13.sp,
+                lineHeight = 18.sp,
                 textAlign = TextAlign.Center,
             )
         }

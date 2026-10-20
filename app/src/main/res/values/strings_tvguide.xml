@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Full TV guide grid (ui/tvguide) and programme reminders pop-up (ui/reminders). -->
+    <string name="tvguide_title">Guide TV</string>
+    <!-- Buttons moving the time window by two hours. -->
+    <string name="tvguide_earlier">−2 h</string>
+    <string name="tvguide_later">+2 h</string>
+    <!-- Day of the window, start and end times: "Aujourd'hui · 20:30 – 23:30". -->
+    <string name="tvguide_window">%1$s · %2$s – %3$s</string>
+    <string name="tvguide_loading">Chargement du guide…</string>
+    <string name="tvguide_loading_row">Chargement…</string>
+    <!-- Part of a row of the grid without programme. -->
+    <string name="tvguide_no_info">Pas d\'information</string>
+    <string name="tvguide_badge_upcoming">À VENIR</string>
+    <string name="tvguide_badge_reminder">RAPPEL</string>
+    <string name="tvguide_remaining">Reste %1$s</string>
+    <string name="tvguide_starts_in">Dans %1$s</string>
+    <!-- What OK does on the focused cell. -->
+    <string name="tvguide_ok_live">OK : regarder en direct</string>
+    <string name="tvguide_ok_replay">OK : revoir ce programme</string>
+    <string name="tvguide_ok_remind">OK : me prévenir quand ça commence</string>
+    <string name="tvguide_ok_unremind">OK : annuler le rappel</string>
+    <string name="tvguide_ok_channel">OK : regarder la chaîne</string>
+    <string name="tvguide_keys_hint">▲▼ : chaînes   ·   ◀▶ : programmes</string>
+    <!-- Pop-up shown when a programme with a reminder starts. -->
+    <string name="tvguide_reminder_starting">Ça commence</string>
+    <string name="tvguide_reminder_watch">Regarder</string>
+    <string name="tvguide_reminder_ignore">Ignorer</string>
+</resources>

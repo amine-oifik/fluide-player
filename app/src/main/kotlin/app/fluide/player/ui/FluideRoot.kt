@@ -83,6 +83,7 @@ fun FluideRoot(vm: MainViewModel) {
                 Modifier.fillMaxSize()
             },
             aspect = settings.aspectMode,
+            subtitleScale = settings.subtitleScale,
         )
 
         // Picture-in-picture: the small window shows the video only.

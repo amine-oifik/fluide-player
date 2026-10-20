@@ -206,7 +206,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch { start() }
         viewModelScope.launch { sourceManager.channelChanges.collect { onChannelsChanged(it) } }
         viewModelScope.launch {
-            sourceManager.guideChanges.collect { id -> if (id == uiState.value.activeSourceId) pager.invalidate() }
+            sourceManager.guideChanges.collect { id ->
+                if (id == uiState.value.activeSourceId) {
+                    pager.invalidate()
+                    tvGuide.invalidate()
+                }
+            }
         }
         viewModelScope.launch {
             controller.state.map { it.phase }.distinctUntilChanged().collect { phase ->

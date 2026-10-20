@@ -24,6 +24,8 @@ data class SourceInfo(
     /** Xtream live container: "ts" or "m3u8". */
     val streamFormat: String = "ts",
     val serverTimezone: String? = null,
+    /** Shift applied to the guide times of this playlist, in minutes (-720..720; 0 = none). */
+    val epgOffsetMinutes: Int = 0,
 )
 
 /** One line of the channel list. Built page by page, never for a whole list. */

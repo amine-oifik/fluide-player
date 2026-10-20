@@ -2,6 +2,7 @@ package app.fluide.player.ui.player
 
 import androidx.annotation.OptIn
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.Player
@@ -30,6 +31,8 @@ fun PlayerSurface(
     aspect: AspectMode = AspectMode.FIT,
     subtitleScale: Float = 1f,
 ) {
+    // Subtitle size applied to the view (re-laying out the cues only when it changes).
+    val appliedScale = remember { floatArrayOf(Float.NaN) }
     AndroidView(
         factory = { context ->
             PlayerView(context).apply {
@@ -55,8 +58,10 @@ fun PlayerSurface(
                 AspectMode.ZOOM -> AspectRatioFrameLayout.RESIZE_MODE_ZOOM
             }
             if (view.resizeMode != mode) view.resizeMode = mode
-            view.subtitleView?.let { subtitles ->
-                val scale = subtitleScale.coerceIn(0.5f, 2.5f)
+            val scale = subtitleScale.coerceIn(0.5f, 2.5f)
+            val subtitles = view.subtitleView
+            if (subtitles != null && appliedScale[0] != scale) {
+                appliedScale[0] = scale
                 subtitles.setFractionalTextSize(SubtitleView.DEFAULT_TEXT_SIZE_FRACTION * scale)
                 // Sizes written in the subtitle file itself (SSA, TTML) would ignore the user's choice.
                 subtitles.setApplyEmbeddedFontSizes(scale == 1f)

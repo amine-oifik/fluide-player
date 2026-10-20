@@ -195,10 +195,30 @@ class SourceManager(
     }
 
     /**
-     * Shift applied to the guide of a playlist, in minutes (-720..720), for providers whose XMLTV times
-     * are off. (Contract: stored and applied by the EPG offset work.)
+     * Shift applied to the guide of a playlist, in minutes (coerced to -720..720), for providers whose XMLTV
+     * times are off. Stored with the playlist and applied to the programmes already stored, so the guide
+     * moves at once; later imports apply it to the new programmes.
+     *
+     * The stored guide is shifted on the import thread: an import running for this playlist ends first (its
+     * programmes then carry the previous shift, which the difference corrects), so the stored times always
+     * match the stored shift. The new value shows in [sources] right away.
      */
-    suspend fun setEpgOffset(id: Long, minutes: Int) = Unit
+    suspend fun setEpgOffset(id: Long, minutes: Int) {
+        val target = minutes.coerceIn(MIN_EPG_OFFSET, MAX_EPG_OFFSET)
+        sourcesState.value = sourcesState.value.map { if (it.id == id) it.copy(epgOffsetMinutes = target) else it }
+        val shifted = withContext(importDispatcher) {
+            val previous = epgOffsetOf(id) ?: return@withContext false
+            if (previous != target) {
+                database.writableDatabase.inTransaction {
+                    execSQL("UPDATE source SET epg_offset_min = ? WHERE id = ?", arrayOf<Any>(target, id))
+                    guides.shiftStored(id, (target - previous) * 60L)
+                }
+            }
+            reloadNow()
+            previous != target
+        }
+        if (shifted) guideUpdates.emit(id)
+    }
 
     /** Xtream live container: "ts" (MPEG-TS) or "m3u8" (HLS). Applies at the next refresh. */
     suspend fun setStreamFormat(id: Long, format: String) = withContext(Dispatchers.IO) {
@@ -358,7 +378,13 @@ class SourceManager(
                     else Validators(row.epgEtag, row.epgLastModified),
                     job = job,
                 ) { reader, validators ->
-                    guides.import(id, reader, job, device.budget.epgPastDays.coerceAtLeast(EPG_MIN_PAST_DAYS), device.budget.epgFutureDays) { n ->
+                    // Read here, on the import thread, with no suspension until the import ends: setEpgOffset
+                    // shifts the stored guide on this thread too, so it never runs in the middle of an import.
+                    val offset = epgOffsetOf(id) ?: 0
+                    guides.import(
+                        id, reader, job, device.budget.epgPastDays.coerceAtLeast(EPG_MIN_PAST_DAYS), device.budget.epgFutureDays,
+                        offsetMinutes = offset,
+                    ) { n ->
                         progressState.value = ImportProgress(id, ImportPhase.EPG, n)
                     }.also { saveValidators(id, validators, epg = true) }
                 }
@@ -461,11 +487,17 @@ class SourceManager(
         )
     }
 
+    /** The stored guide shift of [id] in minutes, null when the source no longer exists. */
+    private fun epgOffsetOf(id: Long): Int? =
+        database.readableDatabase.rawQuery("SELECT epg_offset_min FROM source WHERE id = $id", null).use { c ->
+            if (c.moveToFirst()) c.getInt(0) else null
+        }
+
     private fun reloadNow() {
         sourcesState.value = database.readableDatabase.rawQuery(
             "SELECT id, name, type, channel_count, programme_count, updated_at, epg_updated_at, max_connections, " +
                 "user_agent, last_error, movie_count, series_count, expires_at, account_status, active_connections, " +
-                "stream_format, server_tz FROM source ORDER BY id",
+                "stream_format, server_tz, epg_offset_min FROM source ORDER BY id",
             null,
         ).use { c ->
             val out = ArrayList<SourceInfo>(c.count)
@@ -488,6 +520,7 @@ class SourceManager(
                     activeConnections = c.intOrNull(14),
                     streamFormat = c.stringOrNull(15) ?: "ts",
                     serverTimezone = c.stringOrNull(16),
+                    epgOffsetMinutes = c.getInt(17),
                 )
             }
             out
@@ -504,6 +537,10 @@ class SourceManager(
         const val TYPE_XTREAM = "xtream"
         const val PLAYLIST_MAX_AGE_MS = 24 * 60 * 60_000L
         const val EPG_MAX_AGE_MS = 12 * 60 * 60_000L
+
+        /** Bounds of the guide shift, in minutes (12 hours either way). */
+        const val MIN_EPG_OFFSET = -720
+        const val MAX_EPG_OFFSET = 720
 
         /** Catch-up needs the past programmes: keep at least two days of them. */
         const val EPG_MIN_PAST_DAYS = 2

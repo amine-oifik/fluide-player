@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Playlists screen: shift of the programme guide of one playlist. -->
+    <string name="data_epg_offset">Décalage du guide</string>
+    <string name="data_epg_offset_hint">Avance ou retarde les horaires du guide de cette playlist (par pas de 30 min)</string>
+    <string name="data_epg_offset_none">Aucun</string>
+    <!-- %1$s: sign (+ or −), %2$d: hours. Example: +2 h -->
+    <string name="data_epg_offset_hours">%1$s%2$d h</string>
+    <!-- %1$s: sign (+ or −), %2$d: hours, %3$02d: minutes. Example: +1 h 30 -->
+    <string name="data_epg_offset_hours_minutes">%1$s%2$d h %3$02d</string>
+    <!-- %1$s: sign (+ or −), %2$d: minutes. Example: −30 min -->
+    <string name="data_epg_offset_minutes">%1$s%2$d min</string>
+    <string name="data_epg_offset_earlier">Avancer le guide de 30 minutes</string>
+    <string name="data_epg_offset_later">Retarder le guide de 30 minutes</string>
+
+    <!-- Playlists screen: sizes of a playlist's catalogue. -->
+    <plurals name="data_source_movies">
+        <item quantity="one">%1$d film</item>
+        <item quantity="many">%1$d films</item>
+        <item quantity="other">%1$d films</item>
+    </plurals>
+    <plurals name="data_source_series">
+        <item quantity="one">%1$d série</item>
+        <item quantity="many">%1$d séries</item>
+        <item quantity="other">%1$d séries</item>
+    </plurals>
+    <plurals name="data_source_programmes">
+        <item quantity="one">%1$d programme</item>
+        <item quantity="many">%1$d programmes</item>
+        <item quantity="other">%1$d programmes</item>
+    </plurals>
+
+    <!-- Backup and restore errors (shown after "Échec de la sauvegarde : " or "Échec de la restauration : "). -->
+    <string name="data_backup_write_failed">impossible d\'écrire le fichier</string>
+    <string name="data_backup_read_failed">impossible de lire le fichier</string>
+    <string name="data_backup_denied">accès au fichier refusé</string>
+    <string name="data_backup_not_backup">ce fichier n\'est pas une sauvegarde Fluide Player</string>
+    <string name="data_backup_damaged">sauvegarde endommagée</string>
+    <string name="data_backup_newer">sauvegarde créée par une version plus récente : mettez l\'application à jour</string>
+    <string name="data_backup_too_large">fichier trop volumineux pour être une sauvegarde</string>
+</resources>

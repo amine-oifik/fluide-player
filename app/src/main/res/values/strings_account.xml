@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Account screen: the active playlist and its subscription. -->
+    <string name="account_title">Mon compte</string>
+    <string name="account_subtitle">Abonnement et qualité de connexion</string>
+    <string name="account_no_source">Aucune playlist active</string>
+    <string name="account_no_source_hint">Ajoutez ou activez une playlist pour voir votre abonnement.</string>
+    <string name="account_type_xtream">Xtream Codes</string>
+    <string name="account_type_url">Playlist M3U</string>
+    <string name="account_type_file">Fichier M3U</string>
+    <string name="account_server">Serveur</string>
+    <string name="account_user">Utilisateur</string>
+    <string name="account_secure">HTTPS</string>
+    <string name="account_connections">Connexions</string>
+    <string name="account_connections_value">%1$d / %2$d</string>
+    <string name="account_connections_max">%1$d max.</string>
+    <string name="account_format">Format du direct</string>
+    <string name="account_format_ts">MPEG-TS</string>
+    <string name="account_format_hls">HLS</string>
+    <string name="account_timezone">Fuseau du serveur</string>
+    <string name="account_unknown">—</string>
+
+    <!-- Status chip. -->
+    <string name="account_status_active">Actif</string>
+    <string name="account_status_expired">Expiré</string>
+    <string name="account_status_banned">Banni</string>
+    <string name="account_status_disabled">Désactivé</string>
+    <string name="account_status_refused">Identifiants refusés</string>
+    <string name="account_status_trial">Essai</string>
+    <string name="account_status_ready">Prête</string>
+    <string name="account_status_error">Erreur de mise à jour</string>
+
+    <!-- Expiry. -->
+    <string name="account_expiry">Abonnement</string>
+    <string name="account_expires_on">Expire le %1$s</string>
+    <string name="account_expired_on">Expiré depuis le %1$s</string>
+    <string name="account_unlimited">Sans date d\'expiration</string>
+    <string name="account_last_day">Dernier jour</string>
+    <plurals name="account_days_left">
+        <item quantity="one">%1$d jour restant</item>
+        <item quantity="many">%1$d jours restants</item>
+        <item quantity="other">%1$d jours restants</item>
+    </plurals>
+
+    <!-- Catalogue counts and updates. -->
+    <string name="account_stat_channels">Chaînes</string>
+    <string name="account_stat_movies">Films</string>
+    <string name="account_stat_series">Séries</string>
+    <string name="account_stat_programmes">Programmes</string>
+    <string name="account_updated">Playlist mise à jour le %1$s</string>
+    <string name="account_never_updated">Playlist jamais importée</string>
+    <string name="account_epg_updated">Guide mis à jour le %1$s</string>
+    <string name="account_last_error">Dernière erreur : %1$s</string>
+
+    <!-- Actions. -->
+    <string name="account_action_test">Tester la connexion</string>
+    <string name="account_action_retest">Relancer le test</string>
+    <string name="account_action_stop">Arrêter le test</string>
+    <string name="account_action_switch">Changer de playlist</string>
+    <string name="account_action_refresh">Actualiser</string>
+    <string name="account_action_back">Retour</string>
+
+    <!-- Connection test. -->
+    <string name="account_speed_title">Test de connexion</string>
+    <string name="account_speed_intro">Mesure la latence et le débit réel entre cet appareil et le serveur de votre playlist, avec une vraie chaîne.</string>
+    <string name="account_speed_phase_latency">Mesure de la latence…</string>
+    <string name="account_speed_phase_download">Mesure du débit… %1$d %%</string>
+    <string name="account_speed_unit">Mbit/s</string>
+    <string name="account_speed_latency">Latence</string>
+    <string name="account_speed_latency_value">%1$d ms</string>
+    <string name="account_speed_latency_fast">Zapping rapide</string>
+    <string name="account_speed_latency_ok">Correcte</string>
+    <string name="account_speed_latency_slow">Zapping plus lent</string>
+    <string name="account_speed_data">Données reçues</string>
+    <string name="account_speed_data_value">%1$s Mo</string>
+    <string name="account_speed_tested_at">Testé à %1$s</string>
+    <string name="account_speed_scale_sd">SD</string>
+    <string name="account_speed_scale_hd">HD</string>
+    <string name="account_speed_scale_full_hd">FHD</string>
+    <string name="account_speed_scale_uhd">4K</string>
+
+    <string name="account_speed_verdict_poor">Trop lent pour la vidéo</string>
+    <string name="account_speed_verdict_sd">Suffisant pour la SD</string>
+    <string name="account_speed_verdict_hd">Bon pour la HD 720p</string>
+    <string name="account_speed_verdict_full_hd">Parfait pour la Full HD 1080p</string>
+    <string name="account_speed_verdict_uhd">Idéal pour la 4K</string>
+    <string name="account_speed_hint_poor">Coupures probables. Préférez un câble Ethernet ou rapprochez l\'appareil du routeur.</string>
+    <string name="account_speed_hint_sd">Les chaînes HD risquent de saccader aux heures de pointe.</string>
+    <string name="account_speed_hint_hd">La plupart des chaînes passent sans coupure.</string>
+    <string name="account_speed_hint_full_hd">Toutes les chaînes HD et Full HD passent sans coupure.</string>
+    <string name="account_speed_hint_uhd">Assez de marge pour la 4K et le multi-écran.</string>
+
+    <string name="account_speed_error_title">Test impossible</string>
+    <string name="account_speed_error_no_source">Aucune playlist active à tester.</string>
+    <string name="account_speed_error_no_stream">Aucune chaîne de cette playlist ne peut servir au test.</string>
+    <string name="account_speed_error_refused">Le serveur refuse la chaîne : abonnement expiré ou nombre de connexions atteint.</string>
+    <string name="account_speed_error_http">Le serveur a répondu par une erreur.</string>
+    <string name="account_speed_error_timeout">Le serveur ne répond pas à temps.</string>
+    <string name="account_speed_error_network">Connexion au serveur impossible. Vérifiez le réseau.</string>
+    <string name="account_speed_error_no_data">Le serveur n\'a envoyé aucune vidéo.</string>
+</resources>

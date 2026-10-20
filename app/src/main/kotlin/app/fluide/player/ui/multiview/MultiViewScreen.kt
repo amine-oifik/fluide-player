@@ -68,6 +68,7 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.pluralStringResource
@@ -124,6 +125,11 @@ fun MultiViewScreen(vm: MainViewModel) {
     val previousPicker = remember { intArrayOf(-1) }
     val focusAfterPicker = remember { intArrayOf(-1) }
 
+    // A long OK opens the picker while the key is still held: Compose takes each repeated key down as a
+    // new press of whatever has the focus, so the release would click the picker row that just got it
+    // (and close the picker at once). Time of the last swallowed OK event, 0 when off.
+    val okGuard = remember { longArrayOf(0L) }
+
     fun focusTile(index: Int) {
         runCatching { tileFocus[index].requestFocus() }
     }
@@ -161,6 +167,21 @@ fun MultiViewScreen(vm: MainViewModel) {
         BoxWithConstraints(
             Modifier
                 .fillMaxSize()
+                .onPreviewKeyEvent { event ->
+                    val armedAt = okGuard[0]
+                    if (armedAt == 0L || !isOkKey(event.key)) return@onPreviewKeyEvent false
+                    val now = System.nanoTime()
+                    // Picker not open, or a fresh press long after (the release was missed): guard off.
+                    if (controller.state.value.pickerSlot < 0 ||
+                        (event.type == KeyEventType.KeyDown && now - armedAt > OK_GUARD_GAP_NS)
+                    ) {
+                        okGuard[0] = 0L
+                        false
+                    } else {
+                        okGuard[0] = if (event.type == KeyEventType.KeyUp) 0L else now
+                        true
+                    }
+                }
                 .onKeyEvent { event ->
                     if (pickerOpen || event.type != KeyEventType.KeyDown) return@onKeyEvent false
                     val digit = tileDigit(event.key)
@@ -220,6 +241,10 @@ fun MultiViewScreen(vm: MainViewModel) {
                                     }
                                 },
                                 onChange = { controller.openPicker(index) },
+                                onLongPress = {
+                                    okGuard[0] = System.nanoTime()
+                                    controller.openPicker(index)
+                                },
                                 onZap = { delta -> controller.zap(index, delta) },
                             )
                         }
@@ -388,12 +413,12 @@ private fun BarChip(
         else -> SolidColor(FluideColors.Glass)
     }
     val borderColor = when {
-        focused -> MaterialTheme.colorScheme.onPrimary
+        focused -> FluideColors.OnAccent
         selected -> accent.copy(alpha = 0.7f)
         else -> FluideColors.GlassBorder
     }
     val content = when {
-        focused -> MaterialTheme.colorScheme.onPrimary
+        focused -> FluideColors.OnAccent
         selected -> accent
         else -> MaterialTheme.colorScheme.onSurface
     }
@@ -499,6 +524,7 @@ private fun Tile(
     onFocused: () -> Unit,
     onClick: () -> Unit,
     onChange: () -> Unit,
+    onLongPress: () -> Unit,
     onZap: (Int) -> Unit,
 ) {
     var focused by remember { mutableStateOf(false) }
@@ -557,7 +583,7 @@ private fun Tile(
             .combinedClickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
-                onLongClick = onChange,
+                onLongClick = onLongPress,
                 onClick = onClick,
             ),
     ) {
@@ -694,7 +720,7 @@ private fun EmptyTile(focused: Boolean, index: Int, compact: Boolean) {
                 .border(1.dp, if (focused) Color.Transparent else accent.copy(alpha = 0.5f), CircleShape),
             contentAlignment = Alignment.Center,
         ) {
-            PlusIcon(if (focused) MaterialTheme.colorScheme.onPrimary else accent, Modifier.size(if (compact) 18.dp else 24.dp))
+            PlusIcon(if (focused) FluideColors.OnAccent else accent, Modifier.size(if (compact) 18.dp else 24.dp))
         }
         Spacer(Modifier.height(if (compact) 6.dp else 10.dp))
         Text(
@@ -800,7 +826,7 @@ private fun IndexBadge(index: Int, highlighted: Boolean, modifier: Modifier = Mo
             (index + 1).toString(),
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.ExtraBold,
-            color = if (highlighted) MaterialTheme.colorScheme.onPrimary else Color.White,
+            color = if (highlighted) FluideColors.OnAccent else Color.White,
             maxLines = 1,
         )
     }
@@ -810,7 +836,7 @@ private fun IndexBadge(index: Int, highlighted: Boolean, modifier: Modifier = Mo
 @Composable
 private fun AudioBadge(muted: Boolean, compact: Boolean, modifier: Modifier = Modifier) {
     val shape = RoundedCornerShape(14.dp)
-    val onAccent = MaterialTheme.colorScheme.onPrimary
+    val onAccent = FluideColors.OnAccent
     Row(
         modifier
             .height(28.dp)
@@ -898,6 +924,10 @@ private fun PickerPanel(
         if (picker.size > 0) {
             listState.scrollToItem((picker.focusIndex - 3).coerceAtLeast(0))
             withFrameNanos { }
+            // Short list area: the row may be below the visible ones, its focus requester not attached.
+            if (listState.layoutInfo.visibleItemsInfo.none { it.index == picker.focusIndex }) {
+                listState.scrollToItem(picker.focusIndex)
+            }
             withFrameNanos { }
             runCatching { listFocus.requestFocus() }
         } else if (picker.groups.isNotEmpty()) {
@@ -930,7 +960,7 @@ private fun PickerPanel(
                     stringResource(R.string.multiview_screen, slotIndex + 1),
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimary,
+                    color = FluideColors.OnAccent,
                     maxLines = 1,
                 )
             }
@@ -1134,7 +1164,7 @@ private fun PickerChannel(
                     (shownOn + 1).toString(),
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.ExtraBold,
-                    color = if (focused) Color.White else MaterialTheme.colorScheme.onPrimary,
+                    color = if (focused) Color.White else FluideColors.OnAccent,
                     maxLines = 1,
                 )
             }
@@ -1288,6 +1318,13 @@ private fun AlertIcon(tint: Color, modifier: Modifier = Modifier) {
 // ------------------------------------------------------------------ helpers
 
 private const val NOTICE_MS = 8_000L
+
+/** Longer than any gap between the repeats of a held key: a key down after it is a new press. */
+private const val OK_GUARD_GAP_NS = 400_000_000L
+
+/** The keys Compose treats as a click on the focused element. */
+private fun isOkKey(key: Key): Boolean =
+    key == Key.DirectionCenter || key == Key.Enter || key == Key.NumPadEnter
 
 /** Current time (epoch seconds), refreshed every 30 s for the programme progress bars. */
 @Composable

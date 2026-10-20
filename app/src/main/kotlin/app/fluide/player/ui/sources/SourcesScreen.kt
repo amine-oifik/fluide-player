@@ -32,7 +32,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -50,6 +53,7 @@ import app.fluide.player.ui.components.ScreenSurface
 import app.fluide.player.ui.components.TvButton
 import java.text.DateFormat
 import java.util.Date
+import kotlin.math.abs
 
 /**
  * Playlists provided by the user's own service: Xtream Codes accounts, M3U links and files. The app
@@ -125,9 +129,14 @@ private fun SourceCard(source: SourceInfo, active: Boolean, progress: ImportProg
             }
         }
         Text(
-            pluralStringResource(R.plurals.source_channels, source.channelCount, source.channelCount) +
-                " · ${source.movieCount} films · ${source.seriesCount} séries" +
-                if (source.programmeCount > 0) " · ${source.programmeCount} programmes" else "",
+            buildList {
+                add(pluralStringResource(R.plurals.source_channels, source.channelCount, source.channelCount))
+                add(pluralStringResource(R.plurals.data_source_movies, source.movieCount, source.movieCount))
+                add(pluralStringResource(R.plurals.data_source_series, source.seriesCount, source.seriesCount))
+                if (source.programmeCount > 0) {
+                    add(pluralStringResource(R.plurals.data_source_programmes, source.programmeCount, source.programmeCount))
+                }
+            }.joinToString(" · "),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         if (source.type == SourceType.XTREAM) {
@@ -176,8 +185,69 @@ private fun SourceCard(source: SourceInfo, active: Boolean, progress: ImportProg
                 )
             }
         }
+        EpgOffsetControl(source.epgOffsetMinutes) { minutes -> vm.setEpgOffset(source.id, minutes) }
     }
 }
+
+/**
+ * Shift of the playlist's guide, for providers whose XMLTV times are off: − / + move it by 30 minutes
+ * (12 hours at most either way). The buttons stay enabled at the bounds so the D-pad focus never drops.
+ */
+@Composable
+private fun EpgOffsetControl(offsetMinutes: Int, onChange: (Int) -> Unit) {
+    val earlier = stringResource(R.string.data_epg_offset_earlier)
+    val later = stringResource(R.string.data_epg_offset_later)
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+        AppIcon(Glyph.GUIDE, MaterialTheme.colorScheme.primary, size = 20.dp)
+        Text(stringResource(R.string.data_epg_offset), fontWeight = FontWeight.Medium)
+        Spacer(Modifier.width(4.dp))
+        TvButton(
+            "\u2212",
+            onClick = {
+                val next = (offsetMinutes - EPG_OFFSET_STEP).coerceAtLeast(-EPG_OFFSET_MAX)
+                if (next != offsetMinutes) onChange(next)
+            },
+            modifier = Modifier.semantics { contentDescription = earlier },
+        )
+        Text(
+            epgOffsetLabel(offsetMinutes),
+            color = if (offsetMinutes == 0) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.widthIn(min = 84.dp),
+        )
+        TvButton(
+            "+",
+            onClick = {
+                val next = (offsetMinutes + EPG_OFFSET_STEP).coerceAtMost(EPG_OFFSET_MAX)
+                if (next != offsetMinutes) onChange(next)
+            },
+            modifier = Modifier.semantics { contentDescription = later },
+        )
+    }
+    Text(
+        stringResource(R.string.data_epg_offset_hint),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+}
+
+/** "Aucun", "+30 min", "+2 h", "−1 h 30". */
+@Composable
+private fun epgOffsetLabel(minutes: Int): String {
+    if (minutes == 0) return stringResource(R.string.data_epg_offset_none)
+    val sign = if (minutes > 0) "+" else "\u2212"
+    val hours = abs(minutes) / 60
+    val rest = abs(minutes) % 60
+    return when {
+        hours == 0 -> stringResource(R.string.data_epg_offset_minutes, sign, rest)
+        rest == 0 -> stringResource(R.string.data_epg_offset_hours, sign, hours)
+        else -> stringResource(R.string.data_epg_offset_hours_minutes, sign, hours, rest)
+    }
+}
+
+private const val EPG_OFFSET_STEP = 30
+private const val EPG_OFFSET_MAX = 720
 
 /** 1 -> 2 -> 3 -> 4 -> 1: connections the provider allows (preloading neighbours needs at least 2). */
 private fun cycleConnections(current: Int): Int = if (current >= 4) 1 else current + 1

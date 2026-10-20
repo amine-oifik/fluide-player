@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Settings screen: in-app language. -->
+<!-- Settings screen: in-app language, colour theme, subtitles, sleep timer and backup. -->
 <resources>
     <string name="settings_language">Langue</string>
     <string name="settings_language_hint">Langue de l\'interface ; l\'écran se recharge pour l\'appliquer</string>
@@ -8,4 +8,17 @@
     <string name="settings_language_fr" translatable="false">Français</string>
     <string name="settings_language_en" translatable="false">English</string>
     <string name="settings_language_ar" translatable="false">العربية</string>
+    <string name="settings_theme">Thème</string>
+    <string name="settings_theme_hint">Couleurs de l\'interface, appliquées immédiatement</string>
+    <string name="settings_subtitle_size">Taille des sous-titres</string>
+    <string name="settings_subtitle_size_hint">Texte blanc sur fond sombre, pour toutes les vidéos et chaînes</string>
+    <string name="settings_sleep">Minuterie de veille</string>
+    <string name="settings_sleep_hint">Arrête la lecture après la durée choisie</string>
+    <string name="settings_sleep_left">%1$d min restantes</string>
+    <string name="settings_backup">Sauvegarde</string>
+    <string name="settings_backup_save">Sauvegarder vers un fichier</string>
+    <string name="settings_backup_restore">Restaurer une sauvegarde</string>
+    <string name="settings_backup_hint">Playlists, favoris et réglages dans un fichier JSON, à garder pour réinstaller l\'application ou l\'installer sur un autre appareil.</string>
+    <string name="settings_backup_warning">Attention : le fichier contient les identifiants et mots de passe de vos playlists. Ne le partagez pas.</string>
+    <string name="settings_backup_no_picker">Aucun sélecteur de fichiers sur cet appareil : installez un gestionnaire de fichiers pour sauvegarder ou restaurer.</string>
 </resources>

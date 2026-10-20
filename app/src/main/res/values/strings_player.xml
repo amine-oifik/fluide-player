@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Player options (speed, subtitle size, sleep timer) and voice search. -->
+<resources>
+    <string name="player_speed">Vitesse de lecture</string>
+    <!-- %1$s: the speed, e.g. 1,25 -->
+    <string name="player_speed_value">%1$s×</string>
+    <string name="player_subtitle_size">Taille des sous-titres</string>
+    <string name="player_subtitle_small">Petite</string>
+    <string name="player_subtitle_normal">Normale</string>
+    <string name="player_subtitle_large">Grande</string>
+    <string name="player_subtitle_huge">Très grande</string>
+    <string name="player_sleep">Minuterie de veille</string>
+    <string name="player_sleep_off">Désactivée</string>
+    <string name="player_sleep_minutes">%1$d min</string>
+    <string name="player_sleep_left">Arrêt de la lecture dans %1$d min</string>
+    <string name="player_voice_prompt">Dites le nom d\'une chaîne, d\'un film ou d\'une série</string>
+</resources>

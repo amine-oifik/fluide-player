@@ -17,6 +17,7 @@ import androidx.media3.exoplayer.audio.AudioCapabilities
 import androidx.media3.exoplayer.audio.AudioSink
 import androidx.media3.exoplayer.audio.DefaultAudioSink
 import app.fluide.core.device.DeviceTier
+import app.fluide.core.m3u.StreamKind
 import app.fluide.player.FluideApp
 import app.fluide.player.data.ChannelFilter
 import app.fluide.player.data.ChannelRepository
@@ -144,6 +145,24 @@ class MultiViewController(
         var loadJob: Job? = null
         var retryJob: Job? = null
         var stallJob: Job? = null
+
+        /** The channel comes from the memory of a previous visit: its category is checked again (hidden, locked). */
+        var fromMemory = false
+
+        /** Stream family tried after a format error (HLS <-> MPEG-TS, once, like the main player). */
+        var kindOverride: StreamKind? = null
+        var formatFallbackTried = false
+
+        /** The channel played at least once: a later parsing error is damaged data, not a wrong format. */
+        var everReady = false
+
+        /** Forgets the recovery state of the previous channel or attempt. */
+        fun resetRecovery() {
+            attempts = 0
+            kindOverride = null
+            formatFallbackTried = false
+            everReady = false
+        }
     }
 
     private val appContext: Context = context.applicationContext ?: context
@@ -188,7 +207,9 @@ class MultiViewController(
         for (tile in tiles) {
             tile.channelId = memory[tile.index]
             tile.channel = null
-            tile.attempts = 0
+            tile.resetRecovery()
+            // The channel asked for is trusted; the remembered ones may sit in a category locked since.
+            tile.fromMemory = !(tile.index == 0 && firstChannelId != 0L)
         }
         mutable.value = MultiViewState(
             layout = tileCount,
@@ -224,7 +245,7 @@ class MultiViewController(
         }
         tile.channelId = channelId
         tile.channel = null
-        tile.attempts = 0
+        tile.fromMemory = false
         memorize(slot, channelId)
         replaceSlot(slot, MultiSlot(slot, channelId = channelId, loading = true))
         start(tile)
@@ -323,7 +344,7 @@ class MultiViewController(
         if (!opened || slot !in 0 until slotCount) return
         val tile = tiles[slot]
         if (tile.channelId == 0L) return
-        tile.attempts = 0
+        tile.resetRecovery()
         start(tile)
     }
 
@@ -427,7 +448,8 @@ class MultiViewController(
             layout = tileCount,
             featured = featured,
             slots = slots,
-            audioSlot = if (s.audioSlot < tileCount) s.audioSlot else 0,
+            // The tile whose sound was heard is gone: the first one showing a channel takes it.
+            audioSlot = if (s.audioSlot < tileCount) s.audioSlot else slots.indexOfFirst { it.channelId != 0L }.coerceAtLeast(0),
             pickerSlot = if (s.pickerSlot < tileCount) s.pickerSlot else -1,
         )
         publishPlayers()
@@ -481,7 +503,12 @@ class MultiViewController(
             if (visible) play(tile)
             return
         }
-        updateSlot(tile) { it.copy(loading = true, error = false) }
+        // Another channel: the previous stream stops now (its connection is freed, its late errors
+        // cannot reach the new channel); the last picture stays until the new one starts.
+        tile.player?.stop()
+        tile.resetRecovery()
+        updateSlot(tile) { it.copy(loading = true, error = false, attempt = 0) }
+        val excluded = if (tile.fromMemory) excludedGroups() else emptySet()
         tile.loadJob = scope.launch {
             val nowSec = System.currentTimeMillis() / 1_000
             val loaded = withContext(Dispatchers.IO) {
@@ -489,11 +516,14 @@ class MultiViewController(
             }
             if (tile.channelId != id || !opened) return@launch
             val channel = loaded?.first
-            if (channel == null) {
-                // Gone from the playlist (refresh) or unreadable.
+            val group = channel?.group
+            if (channel == null || (group != null && group in excluded)) {
+                // Gone from the playlist (refresh), unreadable, or remembered from a category hidden or
+                // locked since: the tile is emptied rather than playing it without the PIN.
                 clear(tile.index)
                 return@launch
             }
+            tile.fromMemory = false
             tile.channel = channel
             val row = loaded.second
             updateSlot(tile) {
@@ -523,7 +553,7 @@ class MultiViewController(
         val request = StreamRequest(
             mediaId = channel.id.toString(),
             url = channel.url,
-            kind = channel.kind,
+            kind = tile.kindOverride ?: channel.kind,
             userAgent = channel.userAgent,
             referrer = channel.referrer,
             drmScheme = channel.drmScheme,
@@ -572,7 +602,7 @@ class MultiViewController(
         val listener = object : Player.Listener {
             override fun onPlaybackStateChanged(playbackState: Int) = onState(tile, player, playbackState)
 
-            override fun onPlayerError(error: PlaybackException) = onFailure(tile, player)
+            override fun onPlayerError(error: PlaybackException) = onError(tile, player, error)
         }
         player.addListener(listener)
         tile.player = player
@@ -587,6 +617,7 @@ class MultiViewController(
         when (playbackState) {
             Player.STATE_READY -> {
                 tile.attempts = 0
+                tile.everReady = true
                 updateSlot(tile) { it.copy(loading = false, error = false, attempt = 0) }
             }
             Player.STATE_BUFFERING -> {
@@ -602,6 +633,27 @@ class MultiViewController(
             else -> Unit
         }
     }
+
+    /**
+     * A URL without extension that is not what it looked like (HLS read as MPEG-TS or the reverse): the
+     * other family is tried once, right away, as the main player does. Any other error reconnects.
+     */
+    private fun onError(tile: Tile, player: ExoPlayer, error: PlaybackException) {
+        if (tile.player !== player) return
+        val channel = tile.channel
+        if (channel != null && !tile.formatFallbackTried && !tile.everReady && isFormatError(error)) {
+            tile.formatFallbackTried = true
+            tile.kindOverride = if ((tile.kindOverride ?: channel.kind) == StreamKind.HLS) StreamKind.MPEG_TS else StreamKind.HLS
+            play(tile)
+            return
+        }
+        onFailure(tile, player)
+    }
+
+    private fun isFormatError(error: PlaybackException): Boolean =
+        error.errorCode == PlaybackException.ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED ||
+            error.errorCode == PlaybackException.ERROR_CODE_PARSING_MANIFEST_MALFORMED ||
+            error.errorCode == PlaybackException.ERROR_CODE_PARSING_MANIFEST_UNSUPPORTED
 
     /** Reconnects after 1.5, 3, 6 then 12 s; after that the tile shows an error and frees its decoder. */
     private fun onFailure(tile: Tile, player: ExoPlayer) {

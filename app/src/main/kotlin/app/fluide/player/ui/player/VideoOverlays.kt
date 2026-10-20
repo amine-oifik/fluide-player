@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -35,6 +36,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -88,7 +90,10 @@ import app.fluide.player.ui.media.openExternal
 import app.fluide.player.ui.theme.blend
 import app.fluide.player.ui.theme.themed
 import kotlinx.coroutines.delay
+import java.text.NumberFormat
 import java.util.Date
+import java.util.Locale
+import kotlin.math.abs
 
 /** Scrim under the video controls: transparent at the top, the deep background of the theme at the bottom. */
 private val ControlsScrim: Brush by themed {
@@ -143,15 +148,19 @@ fun VideoControls(
         val settings by vm.settings.collectAsStateWithLifecycle()
         var position by remember { mutableLongStateOf(vm.position()) }
         var duration by remember { mutableLongStateOf(vm.duration()) }
+        // Playback speed chosen in the options (1 = normal).
+        var speed by remember { mutableFloatStateOf(vm.playbackSpeed()) }
         // Fraction under the finger while the seek bar is dragged, null otherwise.
         var scrub by remember { mutableStateOf<Float?>(null) }
         LaunchedEffect(Unit) {
             while (true) {
                 position = vm.position()
                 duration = vm.duration()
+                speed = vm.playbackSpeed()
                 delay(500)
             }
         }
+        val numbers = remember { NumberFormat.getNumberInstance(Locale.getDefault()).apply { maximumFractionDigits = 2 } }
         val timeFormat = rememberClockFormat(settings.clock24h)
         val fraction = if (duration > 0) (position.toFloat() / duration).coerceIn(0f, 1f) else 0f
         val scrubbing = scrub
@@ -189,8 +198,19 @@ fun VideoControls(
                         Text(it, style = MaterialTheme.typography.bodyLarge, color = OverlayColors.Soft, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 }
+                if (speed != 1f) {
+                    OverlayTag(
+                        stringResource(R.string.player_speed_value, numbers.format(speed.toDouble())),
+                        SolidColor(FluideColors.Cyan.copy(alpha = 0.16f)),
+                        modifier = Modifier.padding(start = 16.dp, bottom = 6.dp),
+                        textColor = FluideColors.Cyan,
+                        border = FluideColors.Cyan.copy(alpha = 0.5f),
+                    )
+                }
                 if (duration > 0) {
-                    val endsAt = System.currentTimeMillis() + (duration - shownPosition).coerceAtLeast(0)
+                    // Real time left: faster or slower than the video's own clock when the speed is changed.
+                    val leftMs = ((duration - shownPosition).coerceAtLeast(0) / speed.coerceAtLeast(0.1f)).toLong()
+                    val endsAt = System.currentTimeMillis() + leftMs
                     Text(
                         stringResource(R.string.live_ends_at, timeFormat.format(Date(endsAt))),
                         style = MaterialTheme.typography.labelLarge,
@@ -458,7 +478,10 @@ fun UpNextCard(upNext: UpNext, onPlay: () -> Unit, modifier: Modifier = Modifier
     }
 }
 
-/** Audio and subtitle tracks, picture format, media information, other player: a glass panel. */
+/**
+ * Audio and subtitle tracks, subtitle size, picture format, playback speed (videos), sleep timer,
+ * media information, other player: a glass panel.
+ */
 @Composable
 fun OptionsDialog(vm: MainViewModel, aspect: AspectMode, statsVisible: Boolean) {
     val context = LocalContext.current
@@ -466,6 +489,21 @@ fun OptionsDialog(vm: MainViewModel, aspect: AspectMode, statsVisible: Boolean) 
     val text = remember { vm.tracks(C.TRACK_TYPE_TEXT) }
     val subtitlesOff = remember { vm.subtitlesOff() }
     val first = remember { FocusRequester() }
+    val ui by vm.ui.collectAsStateWithLifecycle()
+    val settings by vm.settings.collectAsStateWithLifecycle()
+    // The speed only applies to videos (movies, episodes, recordings), never to a live channel.
+    val video = ui.playerMode != PlayerMode.LIVE
+    var speed by remember { mutableFloatStateOf(vm.playbackSpeed()) }
+    val numbers = remember { NumberFormat.getNumberInstance(Locale.getDefault()).apply { maximumFractionDigits = 2 } }
+    val sleepEndsAt by vm.sleepTimerEndsAt.collectAsStateWithLifecycle()
+    var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(sleepEndsAt) {
+        while (sleepEndsAt > 0L) {
+            now = System.currentTimeMillis()
+            delay(1_000)
+        }
+    }
+    val sleepMinutes = SleepTimerChoice.current(sleepEndsAt, SLEEP_OPTIONS, now)
     Dialog(onDismissRequest = vm::closeOptions, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Column(
             Modifier
@@ -544,6 +582,18 @@ fun OptionsDialog(vm: MainViewModel, aspect: AspectMode, statsVisible: Boolean) 
                         }
                     }
                 }
+                item { SectionHeader(stringResource(R.string.player_subtitle_size)) }
+                item {
+                    val current = nearest(settings.subtitleScale, SUBTITLE_SCALES.map { it.first })
+                    PillRows(SUBTITLE_SCALES, columns = 2) { (scale, label) ->
+                        ChoicePill(
+                            label = stringResource(label),
+                            selected = scale == current,
+                            onClick = { vm.updateSettings { it.copy(subtitleScale = scale) } },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                }
                 item { SectionHeader(stringResource(R.string.options_aspect)) }
                 item {
                     Row(
@@ -568,6 +618,48 @@ fun OptionsDialog(vm: MainViewModel, aspect: AspectMode, statsVisible: Boolean) 
                         }
                     }
                 }
+                if (video) {
+                    item { SectionHeader(stringResource(R.string.player_speed)) }
+                    item {
+                        val current = nearest(speed, PLAYBACK_SPEEDS)
+                        PillRows(PLAYBACK_SPEEDS, columns = 3) { value ->
+                            ChoicePill(
+                                label = stringResource(R.string.player_speed_value, numbers.format(value.toDouble())),
+                                selected = value == current,
+                                onClick = {
+                                    vm.setPlaybackSpeed(value)
+                                    speed = vm.playbackSpeed()
+                                },
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                    }
+                }
+                item {
+                    Column(Modifier.fillMaxWidth()) {
+                        SectionHeader(stringResource(R.string.player_sleep))
+                        if (sleepEndsAt > 0L) {
+                            Hint(stringResource(R.string.player_sleep_left, SleepTimerChoice.minutesLeft(sleepEndsAt, now)))
+                        }
+                    }
+                }
+                item {
+                    PillRows(listOf(0) + SLEEP_OPTIONS, columns = 3) { minutes ->
+                        ChoicePill(
+                            label = if (minutes == 0) {
+                                stringResource(R.string.player_sleep_off)
+                            } else {
+                                stringResource(R.string.player_sleep_minutes, minutes)
+                            },
+                            selected = minutes == sleepMinutes,
+                            onClick = {
+                                SleepTimerChoice.set(vm, minutes)
+                                now = System.currentTimeMillis()
+                            },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                }
                 item { SectionHeader(stringResource(R.string.live_options_more)) }
                 item {
                     ToggleRow(stringResource(R.string.options_stats), statsVisible) {
@@ -588,6 +680,71 @@ fun OptionsDialog(vm: MainViewModel, aspect: AspectMode, statsVisible: Boolean) 
             withFrameNanos { }
             withFrameNanos { }
             runCatching { first.requestFocus() }
+        }
+    }
+}
+
+/** Subtitle sizes offered (scale of the default size) and their names. */
+private val SUBTITLE_SCALES: List<Pair<Float, Int>> = listOf(
+    0.85f to R.string.player_subtitle_small,
+    1f to R.string.player_subtitle_normal,
+    1.3f to R.string.player_subtitle_large,
+    1.6f to R.string.player_subtitle_huge,
+)
+
+/** Playback speeds offered for videos. */
+private val PLAYBACK_SPEEDS: List<Float> = listOf(0.5f, 0.75f, 1f, 1.25f, 1.5f, 2f)
+
+/** Sleep timer durations offered in the player (minutes; "off" comes first). */
+private val SLEEP_OPTIONS: List<Int> = listOf(15, 30, 60, 90, 120)
+
+/** The value of [options] closest to [value]. */
+private fun nearest(value: Float, options: List<Float>): Float = options.minBy { abs(it - value) }
+
+/**
+ * The sleep timer duration last chosen: the view model only exposes when the timer ends. Shared by
+ * the player options and the settings so both show the same choice.
+ */
+internal object SleepTimerChoice {
+    private var minutes = 0
+    private var endsAt = 0L
+
+    /** Starts (or stops, [value] 0) the sleep timer and remembers the choice. */
+    fun set(vm: MainViewModel, value: Int) {
+        vm.setSleepTimer(value)
+        minutes = value
+        endsAt = vm.sleepTimerEndsAt.value
+    }
+
+    /** Whole minutes left (rounded up) until [endsAt] (epoch ms). */
+    fun minutesLeft(endsAt: Long, now: Long): Int = (((endsAt - now).coerceAtLeast(0L) + 59_999L) / 60_000L).toInt()
+
+    /**
+     * Minutes chosen for the timer that ends at [endsAt] (0 when it is off). For a timer started
+     * elsewhere, the smallest of [options] that covers the time left.
+     */
+    fun current(endsAt: Long, options: List<Int>, now: Long): Int {
+        if (endsAt <= 0L) return 0
+        if (endsAt == this.endsAt && minutes > 0) return minutes
+        val left = minutesLeft(endsAt, now)
+        return options.firstOrNull { it >= left } ?: options.last()
+    }
+}
+
+/** [items] as pills, [columns] per row (every pill gets the same width; short last row padded). */
+@Composable
+private fun <T> PillRows(items: List<T>, columns: Int, pill: @Composable RowScope.(T) -> Unit) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 4.dp, vertical = 4.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        for (row in items.chunked(columns)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                for (item in row) pill(item)
+                repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
+            }
         }
     }
 }

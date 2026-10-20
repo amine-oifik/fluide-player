@@ -3,11 +3,15 @@ package app.fluide.player.data
 import android.app.Application
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
+import app.fluide.player.Settings
+import app.fluide.player.data.backup.BackupManager
 import app.fluide.player.data.db.FluideDatabase
+import app.fluide.player.data.importer.EpgImporter
 import app.fluide.player.data.importer.PlaylistImporter
 import app.fluide.player.data.secure.UrlCipher
 import app.fluide.player.playback.PlaybackPressure
 import kotlinx.coroutines.Job
+import org.json.JSONObject
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -20,10 +24,14 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import java.io.StringReader
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
 /**
- * Runs the real schema, migration and queries of the repositories on SQLite: an SQL typo would
- * otherwise only show up on a device.
+ * Runs the real schema, migrations and queries of the repositories (and of the backup) on SQLite: an
+ * SQL typo would otherwise only show up on a device.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], application = Application::class)
@@ -196,15 +204,100 @@ class CatalogDatabaseTest {
         }
         database = FluideDatabase(app)
         val db = database.readableDatabase
-        assertEquals(2, db.version)
-        db.rawQuery("SELECT name, movie_count, series_count, username FROM source", null).use { c ->
+        assertEquals(3, db.version)
+        db.rawQuery("SELECT name, movie_count, series_count, username, epg_offset_min FROM source", null).use { c ->
             assertTrue(c.moveToFirst())
             assertEquals("Ancienne", c.getString(0))
             assertEquals(0, c.getInt(1))
             assertTrue(c.isNull(3))
+            assertEquals(0, c.getInt(4))
         }
         db.rawQuery("SELECT COUNT(*) FROM vod", null).use { c -> assertTrue(c.moveToFirst()) }
         db.rawQuery("SELECT COUNT(*) FROM watch", null).use { c -> assertTrue(c.moveToFirst()) }
+    }
+
+    @Test
+    fun newDatabaseHasTheGuideShift() {
+        assertEquals(3, database.readableDatabase.version)
+        database.readableDatabase.rawQuery("SELECT epg_offset_min FROM source WHERE id = $sourceId", null).use { c ->
+            assertTrue(c.moveToFirst())
+            assertEquals(0, c.getInt(0))
+        }
+    }
+
+    @Test
+    fun guideShiftAppliesToImportedAndStoredProgrammes() {
+        val format = SimpleDateFormat("yyyyMMddHHmmss Z", Locale.US).apply { timeZone = TimeZone.getTimeZone("UTC") }
+        fun at(sec: Long): String = format.format(Date(sec * 1_000))
+        // Next full hour: inside the import window.
+        val start = (System.currentTimeMillis() / 3_600_000 + 1) * 3_600
+        val guide = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <tv>
+              <channel id="tf1.fr"><display-name>TF1</display-name></channel>
+              <programme start="${at(start)}" stop="${at(start + 3_600)}" channel="tf1.fr"><title>Journal</title></programme>
+              <programme start="${at(start + 3_600)}" stop="${at(start + 5_400)}" channel="tf1.fr"><title>Film</title></programme>
+            </tv>
+        """.trimIndent()
+        val importer = EpgImporter(database, PlaybackPressure())
+        val result = importer.import(sourceId, StringReader(guide), Job(), 2, 7, offsetMinutes = 90) { }
+        assertEquals(2, result.programmes)
+        fun stored() = channels.programmes("tf1.fr", start - 86_400, start + 86_400)
+        assertEquals(listOf(start + 5_400, start + 9_000), stored().map { it.startSec })
+        assertEquals(listOf(start + 9_000, start + 10_800), stored().map { it.stopSec })
+
+        // Back by 90 minutes, then +60: the first programme lands where the second one was (primary key).
+        importer.shiftStored(sourceId, -90 * 60L)
+        assertEquals(listOf(start, start + 3_600), stored().map { it.startSec })
+        importer.shiftStored(sourceId, 60 * 60L)
+        assertEquals(listOf(start + 3_600, start + 7_200), stored().map { it.startSec })
+        assertEquals(listOf(start + 7_200, start + 9_000), stored().map { it.stopSec })
+        assertEquals(listOf("Journal", "Film"), stored().map { it.title })
+    }
+
+    @Test
+    fun backupRestoresPlaylistsFavoritesRulesAndSettings() {
+        database.writableDatabase.execSQL("UPDATE source SET epg_offset_min = 90, user_agent = 'UA' WHERE id = $sourceId")
+        assertTrue(channels.toggleFavorite(sourceId, "TF1 HD"))
+        val movie = media.ids(sourceId, Section.MOVIES, MediaFilter.All, MediaSort.DEFAULT, emptySet()).first()
+        val movieKey = assertNotNullAnd(media.record(Section.MOVIES, movie)).key
+        assertTrue(media.toggleFavorite(sourceId, Section.MOVIES, movieKey))
+        media.setRule(sourceId, Section.LIVE, "XXX Adultes", CategoryMode.HIDDEN)
+        val settings = Settings(app)
+        settings.update { it.copy(theme = "rubis", parentalPin = "1234", clock24h = false) }
+        val backup = BackupManager(app, database, cipher, settings)
+        val document = backup.buildBackup().toString()
+
+        // Same name and location as an existing playlist: never added twice.
+        assertEquals(0, backup.restoreBackup(JSONObject(document)))
+
+        database.writableDatabase.execSQL("UPDATE source SET name = 'Renommée' WHERE id = $sourceId")
+        settings.update { it.copy(theme = "fluide", parentalPin = "0000", clock24h = true, activeSourceId = sourceId) }
+        assertEquals(1, backup.restoreBackup(JSONObject(document)))
+        val restored = database.readableDatabase.rawQuery(
+            "SELECT id, name, type, location, user_agent, epg_offset_min, updated_at FROM source WHERE id != $sourceId",
+            null,
+        ).use { c ->
+            assertTrue(c.moveToFirst())
+            assertEquals("Test", c.getString(1))
+            assertEquals("url", c.getString(2))
+            assertEquals("http://h/get.php", cipher.decrypt(c.getBlob(3)))
+            assertEquals("UA", c.getString(4))
+            assertEquals(90, c.getInt(5))
+            assertEquals(0L, c.getLong(6))
+            assertFalse(c.moveToNext())
+            c.getLong(0)
+        }
+        assertTrue(media.isFavorite(restored, Section.MOVIES, movieKey))
+        assertEquals(mapOf("XXX Adultes" to CategoryMode.HIDDEN), media.rules(restored, Section.LIVE))
+        database.readableDatabase.rawQuery("SELECT name FROM favorite WHERE source_id = $restored", null).use { c ->
+            assertTrue(c.moveToFirst())
+            assertEquals("TF1 HD", c.getString(0))
+        }
+        assertEquals("rubis", settings.current.theme)
+        assertEquals("1234", settings.current.parentalPin)
+        assertFalse(settings.current.clock24h)
+        assertEquals(sourceId, settings.current.activeSourceId)
     }
 
     private fun <T> assertNotNullAnd(value: T?): T {

@@ -19,6 +19,9 @@ import android.database.sqlite.SQLiteOpenHelper
  * Version 2 adds Xtream Codes accounts, movies, series and episodes, watch progress (resume and
  * "continue watching"), favorites of movies and series, channel history and per-category settings
  * (hidden or locked by the parental control).
+ *
+ * Version 3 adds a per-playlist shift of the guide (`source.epg_offset_min`, minutes), for providers whose
+ * XMLTV times are off by a few hours.
  */
 class FluideDatabase(context: Context) : SQLiteOpenHelper(context, NAME, null, VERSION) {
 
@@ -29,10 +32,13 @@ class FluideDatabase(context: Context) : SQLiteOpenHelper(context, NAME, null, V
     override fun onCreate(db: SQLiteDatabase) {
         for (statement in SCHEMA_V1) db.execSQL(statement)
         for (statement in UPGRADE_V2) db.execSQL(statement)
+        for (statement in UPGRADE_V3) db.execSQL(statement)
     }
 
+    /** Applies the missing steps in order (a version 1 database goes through 2, then 3). */
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         if (oldVersion < 2) for (statement in UPGRADE_V2) db.execSQL(statement)
+        if (oldVersion < 3) for (statement in UPGRADE_V3) db.execSQL(statement)
     }
 
     override fun onDowngrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
@@ -42,7 +48,7 @@ class FluideDatabase(context: Context) : SQLiteOpenHelper(context, NAME, null, V
 
     companion object {
         private const val NAME = "fluide.db"
-        private const val VERSION = 2
+        private const val VERSION = 3
 
         /** Column list shared by `channel` and `channel_staging` (same order). */
         const val CHANNEL_COLUMNS =
@@ -233,6 +239,11 @@ class FluideDatabase(context: Context) : SQLiteOpenHelper(context, NAME, null, V
                 mode INTEGER NOT NULL,
                 PRIMARY KEY(source_id, section, name)
             ) WITHOUT ROWID""",
+        )
+
+        private val UPGRADE_V3 = listOf(
+            // Shift of the guide in minutes (-720..720), applied to programme times when the guide is imported.
+            "ALTER TABLE source ADD COLUMN epg_offset_min INTEGER NOT NULL DEFAULT 0",
         )
 
         private val ALL_TABLES = listOf(

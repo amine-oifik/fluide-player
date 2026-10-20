@@ -1,5 +1,11 @@
 package app.fluide.player.ui.search
 
+import android.app.Activity
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.speech.RecognizerIntent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -53,6 +59,7 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
@@ -79,6 +86,7 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringArrayResource
@@ -417,6 +425,14 @@ fun SearchScreen(vm: MainViewModel) {
                         },
                         modifier = Modifier.weight(1f),
                     )
+                    // Voice search: what was said goes into the field, like typed text.
+                    VoiceSearchButton(
+                        onResult = { spoken ->
+                            focus.pending = true
+                            vm.searchAll(spoken)
+                        },
+                        modifier = Modifier.padding(start = if (compact) 8.dp else 12.dp),
+                    )
                     if (!compact) {
                         Spacer(Modifier.width(24.dp))
                         Clock(settings.clock24h, showDate = false)
@@ -561,6 +577,46 @@ private fun SearchField(
             focusedPlaceholderColor = Muted,
             unfocusedPlaceholderColor = Muted,
         ),
+    )
+}
+
+/**
+ * Microphone button: the system speech recognizer (the voice input of Android TV / Google TV, of the
+ * phone) fills the search with what the user said. Hidden when no app on the device handles it.
+ */
+@Composable
+private fun VoiceSearchButton(onResult: (String) -> Unit, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val prompt = stringResource(R.string.player_voice_prompt)
+    val available = remember {
+        runCatching {
+            @Suppress("DEPRECATION")
+            context.packageManager.queryIntentActivities(Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH), 0).isNotEmpty()
+        }.getOrDefault(false)
+    }
+    val deliver by rememberUpdatedState(onResult)
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode != Activity.RESULT_OK) return@rememberLauncherForActivityResult
+        val spoken = result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()?.trim()
+        if (!spoken.isNullOrEmpty()) deliver(spoken)
+    }
+    if (!available) return
+    TvButton(
+        text = "",
+        onClick = {
+            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+                .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                .putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault().toLanguageTag())
+                .putExtra(RecognizerIntent.EXTRA_PROMPT, prompt)
+                .putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+            try {
+                launcher.launch(intent)
+            } catch (e: ActivityNotFoundException) {
+                // The recognizer went away since the check (disabled, uninstalled): nothing to do.
+            }
+        },
+        modifier = modifier,
+        glyph = Glyph.MIC,
     )
 }
 

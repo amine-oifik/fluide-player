@@ -52,7 +52,11 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import app.fluide.player.data.Section
 import app.fluide.player.ui.components.AppIcon
+import app.fluide.player.ui.components.FluideColors
+import app.fluide.player.ui.components.FluideGradient
 import app.fluide.player.ui.components.Glyph
+import app.fluide.player.ui.theme.blend
+import app.fluide.player.ui.theme.themed
 import coil.compose.AsyncImage
 import java.util.Locale
 
@@ -61,19 +65,22 @@ import java.util.Locale
  * panels, focus halo, shimmer placeholders, rating chip, progress stripe and badges.
  */
 
-/** Fluide Player palette, as used by the media screens. */
+/** Fluide Player palette, as used by the media screens (brand colours follow the colour theme). */
 internal object MediaPalette {
-    val Navy = Color(0xFF070B1C)
-    val Blue = Color(0xFF3D7BFF)
-    val Cyan = Color(0xFF22D3EE)
-    val Violet = Color(0xFF7B3DFF)
+    val Navy: Color get() = FluideColors.Navy
+    val Blue: Color get() = FluideColors.Blue
+    val Cyan: Color get() = FluideColors.Cyan
+    val Violet: Color get() = FluideColors.Violet
     val Heart = Color(0xFFFF5C7A)
 
+    /** Text and icons over the full accent gradient (dark on the light accents of some themes). */
+    val OnAccent: Color get() = FluideColors.OnAccent
+
     /** Main text on the dark screens. */
-    val Soft = Color(0xFFDCE3F2)
+    val Soft: Color get() = FluideColors.Soft
 
     /** Secondary text (meta, labels). */
-    val Muted = Color(0xFFAEB7D3)
+    val Muted: Color get() = FluideColors.Muted
 
     /** Glass panel fill: white at 7 %. */
     val Glass = Color(0x12FFFFFF)
@@ -82,20 +89,20 @@ internal object MediaPalette {
     val GlassBorder = Color(0x1AFFFFFF)
 
     /** Dark glass behind small labels drawn over pictures. */
-    val Scrim = Color(0xC7070B1C)
+    val Scrim: Color get() = FluideColors.Navy.copy(alpha = 0.78f)
 
-    val ShimmerBase = Color(0xFF141B3A)
-    val ShimmerHighlight = Color(0x2EA9C4FF)
+    val ShimmerBase: Color by themed { blend(it.surface, it.dialogTop, 0.66f) }
+    val ShimmerHighlight: Color by themed { blend(it.blue, Color.White, 0.56f).copy(alpha = 0.18f) }
 }
 
-/** The "fluid" gradient: electric blue to cyan. */
-internal val MediaFluidBrush: Brush = Brush.linearGradient(listOf(MediaPalette.Blue, MediaPalette.Cyan))
+/** The "fluid" gradient: accent to second accent (electric blue to cyan in the original theme). */
+internal val MediaFluidBrush: Brush get() = FluideGradient
 
 /** Progress fill (left to right). */
-internal val MediaProgressBrush: Brush = Brush.horizontalGradient(listOf(MediaPalette.Blue, MediaPalette.Cyan))
+internal val MediaProgressBrush: Brush by themed { Brush.horizontalGradient(listOf(it.blue, it.cyan)) }
 
-/** Border of a focused card: white melting into cyan. */
-internal val MediaFocusBorder: Brush = Brush.linearGradient(listOf(Color.White, MediaPalette.Cyan))
+/** Border of a focused card: white melting into the second accent. */
+internal val MediaFocusBorder: Brush by themed { Brush.linearGradient(listOf(Color.White, it.cyan)) }
 
 /** Border of a card at rest. */
 internal val MediaRestBorder: Brush = SolidColor(MediaPalette.GlassBorder)
@@ -103,12 +110,16 @@ internal val MediaRestBorder: Brush = SolidColor(MediaPalette.GlassBorder)
 internal val MediaGlassBrush: Brush = SolidColor(MediaPalette.Glass)
 
 /** Card background while there is no picture (or none at all). */
-internal val MediaArtPlaceholder: Brush = Brush.linearGradient(listOf(Color(0xFF1A2550), Color(0xFF131A3A), Color(0xFF221446)))
+internal val MediaArtPlaceholder: Brush by themed {
+    Brush.linearGradient(
+        listOf(blend(it.dialogTop, it.blue, 0.08f), blend(it.surface, it.dialogTop, 0.62f), blend(it.night, it.violet, 0.16f)),
+    )
+}
 
 /** Bottom scrim of the posters and episode pictures, under their texts. */
-internal val MediaBottomScrim: Brush = Brush.verticalGradient(
-    listOf(Color.Transparent, MediaPalette.Navy.copy(alpha = 0.62f), MediaPalette.Navy.copy(alpha = 0.94f)),
-)
+internal val MediaBottomScrim: Brush by themed {
+    Brush.verticalGradient(listOf(Color.Transparent, it.navy.copy(alpha = 0.62f), it.navy.copy(alpha = 0.94f)))
+}
 
 private val TrackColor = Color(0x2EFFFFFF)
 private val PillShape = RoundedCornerShape(24.dp)
@@ -284,7 +295,7 @@ internal fun ProgressStripe(fraction: Float, modifier: Modifier = Modifier, heig
 
 /** Small bold pill label (episode number, status...). */
 @Composable
-internal fun MediaBadge(text: String, modifier: Modifier = Modifier, fill: Brush = MediaFluidBrush, color: Color = Color.White) {
+internal fun MediaBadge(text: String, modifier: Modifier = Modifier, fill: Brush = MediaFluidBrush, color: Color = MediaPalette.OnAccent) {
     Text(
         text,
         color = color,
@@ -350,6 +361,6 @@ internal fun RoundIconButton(glyph: Glyph, onClick: () -> Unit, modifier: Modifi
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        AppIcon(glyph, Color.White, size = diameter * 0.42f)
+        AppIcon(glyph, if (focused) MediaPalette.OnAccent else Color.White, size = diameter * 0.42f)
     }
 }

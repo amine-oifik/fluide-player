@@ -55,27 +55,35 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
 import app.fluide.player.R
 import app.fluide.player.ui.PinRequest
+import app.fluide.player.ui.theme.FluideThemes
+import app.fluide.player.ui.theme.LocalFluidePalette
+import app.fluide.player.ui.theme.themed
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-/** Dark navy glass for the panels drawn over the video. */
-val PanelColor = Color(0xE80A1028)
+/** Dark glass of the theme for the panels drawn over the video (navy in the original theme). */
+val PanelColor: Color get() = FluideColors.Panel
 
-/** Background gradient of the full screens (home, movies, series...): navy to very dark violet, diagonal. */
-val ScreenBrush = Brush.linearGradient(listOf(FluideColors.Navy, FluideColors.NavyLight, FluideColors.Night))
+/**
+ * Background gradient of the full screens (home, movies, series...): the background stops of the active
+ * theme (navy to very dark violet in the original one), diagonal.
+ */
+val ScreenBrush: Brush get() = FluideThemes.active.screenBrush
 
 private val ButtonShape = RoundedCornerShape(24.dp)
-private val GlassFill = SolidColor(FluideColors.Glass)
+private val GlassFill: Brush by themed { SolidColor(it.glass) }
 private val DisabledFill = SolidColor(Color(0x0AFFFFFF))
-private val PrimaryFill = Brush.linearGradient(listOf(FluideColors.Blue.copy(alpha = 0.55f), FluideColors.Cyan.copy(alpha = 0.32f)))
+private val PrimaryFill: Brush by themed {
+    Brush.linearGradient(listOf(it.blue.copy(alpha = 0.55f), it.cyan.copy(alpha = 0.32f)))
+}
 private val DialogShape = RoundedCornerShape(24.dp)
-private val DialogBrush = Brush.verticalGradient(listOf(Color(0xFF161D40), Color(0xFF0D1230)))
+private val DialogBrush: Brush by themed { Brush.verticalGradient(listOf(it.dialogTop, it.dialogBottom)) }
 
 /**
  * A button for the remote (clear focus highlight, OK and long OK) and for touch: a glass pill,
- * filled with the blue to cyan gradient and slightly enlarged while focused.
+ * filled with the accent gradient of the theme and slightly enlarged while focused.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -103,7 +111,12 @@ fun TvButton(
         primary && enabled -> FluideColors.Cyan.copy(alpha = 0.45f)
         else -> FluideColors.GlassBorder
     }
-    val content = if (!enabled) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f) else Color.White
+    val content = when {
+        !enabled -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+        // Over the full gradient: white, or dark on the light accents (amber, emerald).
+        active -> FluideColors.OnAccent
+        else -> Color.White
+    }
     Row(
         modifier = modifier
             .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)
@@ -112,7 +125,7 @@ fun TvButton(
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
-                // Soft blue / cyan glow under the focused button (colored shadows from Android 9).
+                // Soft accent glow under the focused button (colored shadows from Android 9).
                 shadowElevation = if (active) 12.dp.toPx() else 0f
                 ambientShadowColor = FluideColors.Cyan
                 spotShadowColor = FluideColors.Blue
@@ -281,7 +294,7 @@ fun PinDialog(request: PinRequest, onSubmit: (String) -> Unit, onDismiss: () -> 
     }
 }
 
-/** Short blue to cyan bar on top of the dialogs. */
+/** Short accent gradient bar on top of the dialogs. */
 @Composable
 private fun AccentBar() {
     Box(
@@ -324,30 +337,32 @@ fun formatClock(ms: Long): String {
 }
 
 /**
- * Full-screen background: the [ScreenBrush] gradient with two soft glows (blue at the top left,
- * violet at the bottom right).
+ * Full-screen background: the [ScreenBrush] gradient with two soft glows of the theme (blue at the top
+ * left and violet at the bottom right in the original theme, a dark red glow in the ruby one).
  */
 @Composable
 fun ScreenSurface(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    val palette = LocalFluidePalette.current
     Box(
         modifier
             .fillMaxSize()
             .drawWithCache {
                 val radius = size.maxDimension.coerceAtLeast(1f)
-                val blueGlow = Brush.radialGradient(
-                    listOf(FluideColors.Blue.copy(alpha = 0.14f), Color.Transparent),
+                val startGlow = Brush.radialGradient(
+                    listOf(palette.glowStart, Color.Transparent),
                     center = Offset(size.width * 0.1f, 0f),
                     radius = radius * 0.55f,
                 )
-                val violetGlow = Brush.radialGradient(
-                    listOf(FluideColors.Violet.copy(alpha = 0.12f), Color.Transparent),
+                val endGlow = Brush.radialGradient(
+                    listOf(palette.glowEnd, Color.Transparent),
                     center = Offset(size.width, size.height),
                     radius = radius * 0.5f,
                 )
+                val background = palette.screenBrush
                 onDrawBehind {
-                    drawRect(ScreenBrush)
-                    drawRect(blueGlow)
-                    drawRect(violetGlow)
+                    drawRect(background)
+                    drawRect(startGlow)
+                    drawRect(endGlow)
                 }
             },
     ) { content() }

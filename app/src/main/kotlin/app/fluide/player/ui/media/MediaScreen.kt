@@ -80,6 +80,7 @@ import app.fluide.player.ui.components.AppIcon
 import app.fluide.player.ui.components.Glyph
 import app.fluide.player.ui.components.ScreenSurface
 import app.fluide.player.ui.components.TvButton
+import app.fluide.player.ui.theme.themed
 
 /**
  * Movies or series: a glass panel of categories on the left, a poster grid on the right (title, search
@@ -292,8 +293,12 @@ private fun SearchField(value: String, onValueChange: (String) -> Unit, placehol
 // ------------------------------------------------------------------ categories
 
 private val CategoryShape = RoundedCornerShape(24.dp)
-private val CategoryFocusBrush = Brush.horizontalGradient(listOf(MediaPalette.Blue.copy(alpha = 0.85f), MediaPalette.Cyan.copy(alpha = 0.55f)))
-private val CategorySelectedBrush = Brush.horizontalGradient(listOf(MediaPalette.Blue.copy(alpha = 0.34f), MediaPalette.Cyan.copy(alpha = 0.12f)))
+private val CategoryFocusBrush: Brush by themed {
+    Brush.horizontalGradient(listOf(it.blue.copy(alpha = 0.85f), it.cyan.copy(alpha = 0.55f)))
+}
+private val CategorySelectedBrush: Brush by themed {
+    Brush.horizontalGradient(listOf(it.blue.copy(alpha = 0.34f), it.cyan.copy(alpha = 0.12f)))
+}
 private val CategoryIdleBrush = SolidColor(Color.Transparent)
 
 @Composable

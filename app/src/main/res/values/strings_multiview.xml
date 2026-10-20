@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Multi-screen: 2 or 4 live channels at once. -->
+    <string name="multiview_title">Multi-écran</string>
+    <string name="multiview_back">Retour</string>
+    <string name="multiview_layout_2">2 écrans</string>
+    <string name="multiview_layout_4">4 écrans</string>
+    <string name="multiview_layout_featured">1 + 3</string>
+    <string name="multiview_mute">Couper le son</string>
+    <string name="multiview_unmute">Remettre le son</string>
+    <string name="multiview_sound_of">Son : %1$s</string>
+    <string name="multiview_sound_off">Son coupé</string>
+    <string name="multiview_screen">Écran %1$d</string>
+    <string name="multiview_audio">Son</string>
+    <string name="multiview_hint">OK : écouter · Appui long ou Menu : changer de chaîne · CH+ / CH− : zapper · 1 à 4 : choisir l\'écran</string>
+
+    <!-- Tile states. -->
+    <string name="multiview_empty_title">Ajouter une chaîne</string>
+    <string name="multiview_empty_hint">OK pour choisir</string>
+    <string name="multiview_loading">Connexion…</string>
+    <string name="multiview_reconnecting">Reconnexion %1$d / %2$d</string>
+    <string name="multiview_error_title">Chaîne indisponible</string>
+    <string name="multiview_error_hint">OK : réessayer · Menu : changer</string>
+
+    <!-- Channel picker. -->
+    <string name="multiview_picker_title">Choisir une chaîne</string>
+    <string name="multiview_picker_current">Actuellement : %1$s</string>
+    <string name="multiview_picker_empty">Aucune chaîne dans cette catégorie</string>
+    <string name="multiview_categories">Catégories</string>
+    <string name="multiview_fullscreen">Plein écran</string>
+    <string name="multiview_clear">Vider l\'écran</string>
+    <string name="multiview_promote">Mettre en grand</string>
+    <string name="multiview_close">Fermer</string>
+
+    <!-- Warnings, shown once. -->
+    <plurals name="multiview_warn_decoders">
+        <item quantity="one">Cet appareil décode %1$d vidéo à la fois en matériel : les autres écrans passent en décodage logiciel et peuvent saccader.</item>
+        <item quantity="many">Cet appareil décode %1$d vidéos à la fois en matériel : les écrans en plus passent en décodage logiciel et peuvent saccader.</item>
+        <item quantity="other">Cet appareil décode %1$d vidéos à la fois en matériel : les écrans en plus passent en décodage logiciel et peuvent saccader.</item>
+    </plurals>
+    <plurals name="multiview_warn_connections">
+        <item quantity="one">Votre playlist autorise %1$d connexion simultanée : les autres écrans risquent de ne pas démarrer (réglable dans Playlists).</item>
+        <item quantity="many">Votre playlist autorise %1$d connexions simultanées : les écrans en plus risquent de ne pas démarrer (réglable dans Playlists).</item>
+        <item quantity="other">Votre playlist autorise %1$d connexions simultanées : les écrans en plus risquent de ne pas démarrer (réglable dans Playlists).</item>
+    </plurals>
+</resources>

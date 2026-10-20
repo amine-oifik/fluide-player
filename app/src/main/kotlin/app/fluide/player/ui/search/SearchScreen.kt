@@ -103,9 +103,13 @@ import app.fluide.player.data.MediaItem
 import app.fluide.player.ui.MainViewModel
 import app.fluide.player.ui.components.AppIcon
 import app.fluide.player.ui.components.Clock
+import app.fluide.player.ui.components.FluideColors
+import app.fluide.player.ui.components.FluideGradient
 import app.fluide.player.ui.components.Glyph
 import app.fluide.player.ui.components.ScreenSurface
 import app.fluide.player.ui.components.TvButton
+import app.fluide.player.ui.theme.blend
+import app.fluide.player.ui.theme.themed
 import coil.compose.AsyncImage
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -116,30 +120,41 @@ import java.util.Locale
 
 // ------------------------------------------------------------------ palette (shared design language)
 
-private val Blue = Color(0xFF3D7BFF)
-private val Cyan = Color(0xFF22D3EE)
-private val Violet = Color(0xFF7B3DFF)
-private val Warm = Color(0xFFFF6A3D)
+// Brand colours follow the colour theme chosen in the settings (getters / values rebuilt per theme).
+private val Blue: Color get() = FluideColors.Blue
+private val Cyan: Color get() = FluideColors.Cyan
+private val Violet: Color get() = FluideColors.Violet
+private val Warm: Color get() = FluideColors.Warm
 private val Amber = Color(0xFFFFC857)
 private val Rose = Color(0xFFFF5C7A)
-private val Soft = Color(0xFFDCE3F2)
-private val Muted = Color(0xFFAEB7D3)
+private val Soft: Color get() = FluideColors.Soft
+private val Muted: Color get() = FluideColors.Muted
 private val GlassFill = Color.White.copy(alpha = 0.07f)
 private val GlassBorder = Color.White.copy(alpha = 0.10f)
 private val GlassBrush = SolidColor(GlassFill)
-private val FluidBrush = Brush.linearGradient(listOf(Blue, Cyan))
-private val ChannelFocusBrush = Brush.horizontalGradient(listOf(Color(0xFF24408F), Color(0xFF123A5C)))
-private val LiveBar = Brush.horizontalGradient(listOf(Warm, Color(0xFFFFB13D)))
-private val ProgressBar = Brush.horizontalGradient(listOf(Blue, Cyan))
-private val LiveAccent = Brush.verticalGradient(listOf(Color(0xFFFF8A3D), Warm))
-private val MoviesAccent = Brush.verticalGradient(listOf(Color(0xFF5A93FF), Blue))
-private val SeriesAccent = Brush.verticalGradient(listOf(Violet, Color(0xFF5560F2)))
-private val PosterPlaceholder = Brush.linearGradient(listOf(Color(0xFF1A2550), Color(0xFF151A3A), Color(0xFF241445)))
-private val LogoWell = Brush.linearGradient(listOf(Color(0xFF16204A), Color(0xFF0E1533)))
+private val FluidBrush: Brush get() = FluideGradient
+private val ChannelFocusBrush: Brush by themed {
+    Brush.horizontalGradient(listOf(blend(it.navy, it.blue, 0.48f), blend(it.navy, it.azure, 0.28f)))
+}
+private val LiveBar: Brush by themed { Brush.horizontalGradient(listOf(it.warm, Color(0xFFFFB13D))) }
+private val ProgressBar: Brush by themed { Brush.horizontalGradient(listOf(it.blue, it.cyan)) }
+private val LiveAccent: Brush by themed { Brush.verticalGradient(listOf(Color(0xFFFF8A3D), it.warm)) }
+private val MoviesAccent: Brush by themed { Brush.verticalGradient(listOf(blend(it.blue, Color.White, 0.16f), it.blue)) }
+private val SeriesAccent: Brush by themed { Brush.verticalGradient(listOf(it.violet, blend(it.violet, it.blue, 0.58f))) }
+private val PosterPlaceholder: Brush by themed {
+    Brush.linearGradient(
+        listOf(blend(it.dialogTop, it.blue, 0.08f), blend(it.night, it.dialogTop, 0.8f), blend(it.night, it.violet, 0.16f)),
+    )
+}
+private val LogoWell: Brush by themed {
+    Brush.linearGradient(listOf(blend(it.surface, it.blue, 0.12f), blend(it.navy, it.raised, 0.7f)))
+}
 private val PosterShade = Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.75f)))
-private val BrandRing = listOf(Blue, Cyan, Violet, Blue)
-private val MutedRing = listOf(Violet.copy(alpha = 0.7f), Color.White.copy(alpha = 0.18f), Violet.copy(alpha = 0.7f))
-private val MatchStyle = SpanStyle(color = Cyan, fontWeight = FontWeight.ExtraBold)
+private val BrandRing: List<Color> by themed { listOf(it.blue, it.cyan, it.violet, it.blue) }
+private val MutedRing: List<Color> by themed {
+    listOf(it.violet.copy(alpha = 0.7f), Color.White.copy(alpha = 0.18f), it.violet.copy(alpha = 0.7f))
+}
+private val MatchStyle: SpanStyle by themed { SpanStyle(color = it.cyan, fontWeight = FontWeight.ExtraBold) }
 
 private val CardShape = RoundedCornerShape(16.dp)
 private val WellShape = RoundedCornerShape(12.dp)
@@ -538,7 +553,7 @@ private fun SearchField(
         colors = OutlinedTextFieldDefaults.colors(
             focusedTextColor = Color.White,
             unfocusedTextColor = Soft,
-            focusedContainerColor = Color(0xFF111A3D),
+            focusedContainerColor = FluideColors.Raised,
             unfocusedContainerColor = GlassFill,
             cursorColor = Cyan,
             focusedBorderColor = Cyan,
@@ -890,7 +905,7 @@ private fun ChannelResultCard(
                         .background(FluidBrush, WellShape),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(initials(row.name), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1)
+                    Text(initials(row.name), color = FluideColors.OnAccent, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1)
                 }
             }
             val number = row.number
@@ -1098,21 +1113,23 @@ private fun SeeAllCard(
             .padding(12.dp),
         contentAlignment = Alignment.Center,
     ) {
-        val captionColor = if (focused) Color.White else Muted
+        // Over the full gradient while focused: white, or dark on the light accents of some themes.
+        val captionColor = if (focused) FluideColors.OnAccent else Muted
+        val labelColor = if (focused) FluideColors.OnAccent else Color.White
         if (horizontal) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                SeeAllBubble()
+                SeeAllBubble(labelColor)
                 Spacer(Modifier.width(12.dp))
                 Column {
-                    Text(label, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                    Text(label, color = labelColor, fontSize = 15.sp, fontWeight = FontWeight.Bold, maxLines = 1)
                     Text(caption, color = captionColor, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
         } else {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                SeeAllBubble()
+                SeeAllBubble(labelColor)
                 Spacer(Modifier.height(10.dp))
-                Text(label, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                Text(label, color = labelColor, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1)
                 Text(caption, color = captionColor, fontSize = 12.sp, textAlign = TextAlign.Center, maxLines = 2)
             }
         }
@@ -1120,14 +1137,14 @@ private fun SeeAllCard(
 }
 
 @Composable
-private fun SeeAllBubble() {
+private fun SeeAllBubble(tint: Color = Color.White) {
     Box(
         Modifier
             .size(40.dp)
             .background(Color.White.copy(alpha = 0.14f), CircleShape),
         contentAlignment = Alignment.Center,
     ) {
-        AppIcon(Glyph.FORWARD, Color.White, size = 18.dp)
+        AppIcon(Glyph.FORWARD, tint, size = 18.dp)
     }
 }
 
@@ -1422,7 +1439,7 @@ private fun SearchOrb(diameter: Dp, muted: Boolean) {
                 .background(if (muted) GlassBrush else FluidBrush),
             contentAlignment = Alignment.Center,
         ) {
-            AppIcon(Glyph.SEARCH, if (muted) Soft else Color.White, size = diameter * 0.24f)
+            AppIcon(Glyph.SEARCH, if (muted) Soft else FluideColors.OnAccent, size = diameter * 0.24f)
         }
     }
 }

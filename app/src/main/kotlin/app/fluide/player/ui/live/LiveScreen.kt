@@ -99,6 +99,8 @@ import app.fluide.player.ui.components.FocusableRow
 import app.fluide.player.ui.components.Glyph
 import app.fluide.player.ui.components.TvButton
 import app.fluide.player.ui.components.formatDuration
+import app.fluide.player.ui.theme.blend
+import app.fluide.player.ui.theme.themed
 import coil.compose.AsyncImage
 import kotlinx.coroutines.delay
 import java.text.DateFormat
@@ -125,16 +127,16 @@ object LiveLayout {
 /** Start padding of the Live TV and programme guide screens: room for the TV overscan, less on phones. */
 internal fun liveStart(screenWidth: Dp): Dp = if (screenWidth < 900.dp) 20.dp else 32.dp
 
-/** Palette of the Live TV and guide screens (Fluide Player design language). */
+/** Palette of the Live TV and guide screens (Fluide Player design language, follows the colour theme). */
 internal object LiveColors {
     /** Main text. */
-    val Soft = Color(0xFFDCE3F2)
+    val Soft: Color get() = FluideColors.Soft
 
     /** Secondary text. */
-    val Muted = Color(0xFFAEB7D3)
+    val Muted: Color get() = FluideColors.Muted
 
     /** Past programmes, end times. */
-    val Dim = Color(0xFF7D87A6)
+    val Dim: Color get() = FluideColors.Dim
 
     /** Favorite star. */
     val Gold = Color(0xFFFFC857)
@@ -150,22 +152,24 @@ internal object LiveColors {
     val Tile = Color(0x14FFFFFF)
 
     /** Opaque fill of a focused text field. */
-    val FieldFocused = Color(0xFF111A3D)
+    val FieldFocused: Color get() = FluideColors.Raised
 }
 
 internal val LiveCardShape = RoundedCornerShape(16.dp)
 internal val LivePillShape = RoundedCornerShape(24.dp)
 
-/** Progress of a programme: the fluid blue to cyan gradient. */
-internal val LiveProgressBrush = Brush.horizontalGradient(listOf(FluideColors.Blue, FluideColors.Cyan))
+/** Progress of a programme: the fluid gradient of the theme (blue to cyan in the original one). */
+internal val LiveProgressBrush: Brush by themed { Brush.horizontalGradient(listOf(it.blue, it.cyan)) }
 
-/** Live accent (programme on air, channel playing): warm orange. */
-internal val LiveWarmBrush = Brush.horizontalGradient(listOf(FluideColors.Warm, Color(0xFFFF9150)))
+/** Live accent (programme on air, channel playing): the warm colour of the theme. */
+internal val LiveWarmBrush: Brush by themed { Brush.horizontalGradient(listOf(it.warm, Color(0xFFFF9150))) }
 
-private val SelectedPillBrush = Brush.horizontalGradient(
-    listOf(FluideColors.Blue.copy(alpha = 0.34f), FluideColors.Cyan.copy(alpha = 0.14f)),
-)
-private val PlaceholderBrush = Brush.linearGradient(listOf(Color(0xFF121B42), Color(0xFF0B1230), Color(0xFF1B1040)))
+private val SelectedPillBrush: Brush by themed {
+    Brush.horizontalGradient(listOf(it.blue.copy(alpha = 0.34f), it.cyan.copy(alpha = 0.14f)))
+}
+private val PlaceholderBrush: Brush by themed {
+    Brush.linearGradient(listOf(it.raised, blend(it.navyLight, it.dialogBottom, 0.4f), blend(it.navy, it.violet, 0.16f)))
+}
 
 /** Glass panel: white 7 % fill with a 1 dp white 10 % border. */
 internal fun Modifier.liveGlass(shape: Shape = LiveCardShape): Modifier =
@@ -369,11 +373,16 @@ private fun GroupColumn(
                 focusedScale = 1.04f,
                 horizontalPadding = 10.dp,
             ) { focused ->
-                val highlighted = focused || isSelected
+                // Over the full gradient while focused: white, or dark on the light accents of some themes.
+                val highlight = when {
+                    focused -> FluideColors.OnAccent
+                    isSelected -> Color.White
+                    else -> null
+                }
                 val glyph = if (group.locked) Glyph.LOCK else groupGlyph(group.filter)
                 if (glyph != null) {
                     val tint = when {
-                        focused -> Color.White
+                        focused -> FluideColors.OnAccent
                         glyph == Glyph.STAR -> LiveColors.Gold
                         isSelected -> FluideColors.Cyan
                         else -> LiveColors.Muted
@@ -385,7 +394,7 @@ private fun GroupColumn(
                     text = pillLabel(group.filter),
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                    color = if (highlighted) Color.White else LiveColors.Soft,
+                    color = highlight ?: LiveColors.Soft,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f),
@@ -396,7 +405,7 @@ private fun GroupColumn(
                         group.count.toString(),
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.SemiBold,
-                        color = if (highlighted) Color.White else LiveColors.Dim,
+                        color = highlight ?: LiveColors.Dim,
                         maxLines = 1,
                     )
                 }
@@ -610,7 +619,11 @@ private fun NumberBadge(number: Int?, playing: Boolean, focused: Boolean) {
             number?.toString() ?: "–",
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Bold,
-            color = if (playing || focused) Color.White else LiveColors.Soft,
+            color = when {
+                playing -> FluideColors.OnAccent
+                focused -> Color.White
+                else -> LiveColors.Soft
+            },
             maxLines = 1,
         )
     }
@@ -857,7 +870,7 @@ internal fun IconChip(glyph: Glyph, onClick: () -> Unit, modifier: Modifier = Mo
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        AppIcon(glyph, Color.White, size = chipSize * 0.45f)
+        AppIcon(glyph, if (focused) FluideColors.OnAccent else Color.White, size = chipSize * 0.45f)
     }
 }
 

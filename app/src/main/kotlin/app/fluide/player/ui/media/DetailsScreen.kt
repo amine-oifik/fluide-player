@@ -74,6 +74,7 @@ import app.fluide.player.ui.components.ScreenSurface
 import app.fluide.player.ui.components.TvButton
 import app.fluide.player.ui.components.formatClock
 import app.fluide.player.ui.components.formatDuration
+import app.fluide.player.ui.theme.themed
 import coil.compose.AsyncImage
 
 /**
@@ -408,7 +409,9 @@ private fun WithProgress(fraction: Float?, caption: String? = null, button: @Com
 // ------------------------------------------------------------------ seasons and episodes
 
 private val SeasonShape = RoundedCornerShape(24.dp)
-private val SeasonSelectedBrush = Brush.horizontalGradient(listOf(MediaPalette.Blue.copy(alpha = 0.4f), MediaPalette.Cyan.copy(alpha = 0.18f)))
+private val SeasonSelectedBrush: Brush by themed {
+    Brush.horizontalGradient(listOf(it.blue.copy(alpha = 0.4f), it.cyan.copy(alpha = 0.18f)))
+}
 private val EpisodeShape = RoundedCornerShape(16.dp)
 
 @Composable
@@ -499,7 +502,7 @@ private fun SeasonPill(label: String, episodes: Int, selected: Boolean, onClick:
     ) {
         Text(
             label,
-            color = Color.White,
+            color = if (focused) MediaPalette.OnAccent else Color.White,
             fontSize = 15.sp,
             // Weight follows the selection only: the pill keeps its width when the focus moves.
             fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
@@ -509,7 +512,11 @@ private fun SeasonPill(label: String, episodes: Int, selected: Boolean, onClick:
             Spacer(Modifier.width(8.dp))
             Text(
                 stringResource(R.string.media_season_episodes, episodes),
-                color = if (focused || selected) Color.White.copy(alpha = 0.82f) else MediaPalette.Muted,
+                color = when {
+                    focused -> MediaPalette.OnAccent.copy(alpha = 0.82f)
+                    selected -> Color.White.copy(alpha = 0.82f)
+                    else -> MediaPalette.Muted
+                },
                 fontSize = 12.sp,
                 maxLines = 1,
             )

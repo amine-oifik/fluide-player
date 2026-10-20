@@ -32,13 +32,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
+import app.fluide.player.ui.theme.themed
 
 private val RowShape = RoundedCornerShape(12.dp)
 
-/** Focused row: blue to cyan tinted glass. */
-private val RowFocusBrush = Brush.horizontalGradient(
-    listOf(FluideColors.Blue.copy(alpha = 0.55f), FluideColors.Cyan.copy(alpha = 0.22f)),
-)
+/** Focused row: glass tinted with the accent gradient of the theme. */
+private val RowFocusBrush: Brush by themed {
+    Brush.horizontalGradient(listOf(it.blue.copy(alpha = 0.55f), it.cyan.copy(alpha = 0.22f)))
+}
 
 /** Selected (current group, playing channel...) but not focused: a subtle glass pill. */
 private val RowSelectedFill = SolidColor(Color(0x17FFFFFF))
@@ -47,8 +48,8 @@ private val RowIdleFill = SolidColor(Color.Transparent)
 
 /**
  * A row that works with a TV remote (D-pad focus, OK, long OK) and with touch. The focused row is
- * clearly highlighted (tinted glass, cyan border, slightly enlarged): on a TV the focus is the only
- * cursor the user has. A selected row gets a subtle pill with a small cyan marker at its start.
+ * clearly highlighted (tinted glass, second accent border, slightly enlarged): on a TV the focus is the
+ * only cursor the user has. A selected row gets a subtle pill with a small accent marker at its start.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -91,7 +92,7 @@ fun FocusableRow(
             .border(if (focused) 2.dp else 1.dp, borderColor, RowShape)
             .drawBehind {
                 if (selected) {
-                    // Small cyan marker at the start of the selected row.
+                    // Small accent marker at the start of the selected row.
                     val height = size.height * 0.46f
                     val width = 3.dp.toPx()
                     drawRoundRect(

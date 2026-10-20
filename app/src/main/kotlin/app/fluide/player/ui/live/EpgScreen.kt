@@ -70,6 +70,8 @@ import app.fluide.player.ui.components.FocusableRow
 import app.fluide.player.ui.components.Glyph
 import app.fluide.player.ui.components.ScreenBrush
 import app.fluide.player.ui.components.formatDuration
+import app.fluide.player.ui.theme.FluideThemes
+import app.fluide.player.ui.theme.blend
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -102,20 +104,22 @@ private fun Modifier.holeBackground(holeOrigin: DpOffset, holeSize: DpSize): Mod
     )
     val holePath = Path().apply { addRoundRect(hole) }
     val reach = size.maxDimension.coerceAtLeast(1f)
-    // Same soft glows as the other screens: blue at the top left, violet at the bottom right.
+    // Same soft glows as the other screens (ScreenSurface): those of the colour theme.
+    val palette = FluideThemes.active
     val blueGlow = Brush.radialGradient(
-        listOf(FluideColors.Blue.copy(alpha = 0.14f), Color.Transparent),
+        listOf(palette.glowStart, Color.Transparent),
         center = Offset(size.width * 0.1f, 0f),
         radius = reach * 0.55f,
     )
     val violetGlow = Brush.radialGradient(
-        listOf(FluideColors.Violet.copy(alpha = 0.12f), Color.Transparent),
+        listOf(palette.glowEnd, Color.Transparent),
         center = Offset(size.width, size.height),
         radius = reach * 0.5f,
     )
+    val background = ScreenBrush
     onDrawBehind {
         clipPath(holePath, ClipOp.Difference) {
-            drawRect(ScreenBrush)
+            drawRect(background)
             drawRect(blueGlow)
             drawRect(violetGlow)
         }
@@ -252,7 +256,7 @@ fun EpgScreen(vm: MainViewModel) {
                                     Box(
                                         Modifier
                                             .size(6.dp)
-                                            .background(if (pillFocused) Color.White else FluideColors.Warm, CircleShape),
+                                            .background(if (pillFocused) FluideColors.OnAccent else FluideColors.Warm, CircleShape),
                                     )
                                     Spacer(Modifier.width(8.dp))
                                 }
@@ -260,7 +264,11 @@ fun EpgScreen(vm: MainViewModel) {
                                     dayLabel(index - today, day),
                                     style = MaterialTheme.typography.labelLarge,
                                     fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold,
-                                    color = if (pillFocused || selected) Color.White else LiveColors.Soft,
+                                    color = when {
+                                        pillFocused -> FluideColors.OnAccent
+                                        selected -> Color.White
+                                        else -> LiveColors.Soft
+                                    },
                                     maxLines = 1,
                                 )
                             }
@@ -449,7 +457,7 @@ private fun ProgrammeRow(
     }
 }
 
-private val PastLine = FluideColors.Cyan.copy(alpha = 0.45f)
+private val PastLine: Color get() = FluideColors.Cyan.copy(alpha = 0.45f)
 private val FutureLine = Color(0x26FFFFFF)
 
 /**
@@ -520,7 +528,7 @@ private fun ProgrammeDetails(
                 Slot.FUTURE -> LiveTag(
                     stringResource(R.string.live_upcoming_badge),
                     SolidColor(FluideColors.Violet.copy(alpha = 0.22f)),
-                    textColor = Color(0xFFD9CCFF),
+                    textColor = blend(FluideColors.Violet, Color.White, 0.72f),
                     border = FluideColors.Violet.copy(alpha = 0.6f),
                 )
                 Slot.PAST -> Unit
@@ -559,7 +567,7 @@ private fun ProgrammeDetails(
             Text(
                 stringResource(R.string.live_starts_in, formatDuration(p.startSec - nowSec)),
                 style = MaterialTheme.typography.labelMedium,
-                color = Color(0xFFC9B8FF),
+                color = blend(FluideColors.Violet, Color.White, 0.62f),
             )
         }
         Column(

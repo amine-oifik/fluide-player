@@ -15,10 +15,12 @@ import androidx.activity.addCallback
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
+import androidx.compose.runtime.getValue
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import app.fluide.player.device.DisplayModeController
@@ -58,7 +60,9 @@ class MainActivity : ComponentActivity() {
             if (viewModel.onBack() == KeyResult.EXIT) finish()
         }
         setContent {
-            FluideTheme {
+            // The colour theme follows the settings: a change recomposes the whole interface.
+            val settings by viewModel.settings.collectAsStateWithLifecycle()
+            FluideTheme(theme = settings.theme) {
                 FluideRoot(viewModel)
             }
         }

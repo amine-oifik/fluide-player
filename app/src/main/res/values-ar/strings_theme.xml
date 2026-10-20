@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Colour themes of the interface (ui/theme/Theme.kt, themeName). -->
+    <string name="theme_fluide">Fluide (أزرق)</string>
+    <string name="theme_rubis">ياقوت (أحمر)</string>
+    <string name="theme_emeraude">زمرد (أخضر)</string>
+    <string name="theme_ambre">كهرمان (برتقالي)</string>
+    <string name="theme_amethyste">جمشت (بنفسجي)</string>
+</resources>

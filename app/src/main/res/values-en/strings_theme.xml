@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Colour themes of the interface (ui/theme/Theme.kt, themeName). -->
+    <string name="theme_fluide">Fluide (blue)</string>
+    <string name="theme_rubis">Ruby (red)</string>
+    <string name="theme_emeraude">Emerald (green)</string>
+    <string name="theme_ambre">Amber (orange)</string>
+    <string name="theme_amethyste">Amethyst (purple)</string>
+</resources>

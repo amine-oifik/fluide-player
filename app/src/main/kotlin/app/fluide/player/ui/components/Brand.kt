@@ -25,45 +25,71 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.fluide.player.ui.theme.FluideThemes
 
-/** Fluide Player brand palette, shared by every screen. */
+/**
+ * Fluide Player brand palette, shared by every screen. Every member is a getter on the active colour
+ * theme (see ui/theme/Theme.kt): read them in composition or while drawing, never in a value computed
+ * once (use `by themed { }` for brushes declared at the top of a file).
+ */
 object FluideColors {
-    /** App background (deep navy). */
-    val Navy = Color(0xFF070B1C)
+    /** App background (deepest colour of the theme). */
+    val Navy: Color get() = FluideThemes.active.navy
 
     /** Middle stop of the screen gradient. */
-    val NavyLight = Color(0xFF0A1330)
+    val NavyLight: Color get() = FluideThemes.active.navyLight
 
-    /** Very dark violet: last stop of the screen gradient. */
-    val Night = Color(0xFF120A26)
+    /** Last stop of the screen gradient. */
+    val Night: Color get() = FluideThemes.active.night
 
-    /** Electric blue: start of the "fluid" gradient, primary color. */
-    val Blue = Color(0xFF3D7BFF)
+    /** Accent: start of the "fluid" gradient, primary color (electric blue in the original theme). */
+    val Blue: Color get() = FluideThemes.active.blue
 
-    /** Between blue and cyan (end of the upper part of the mark). */
-    val Azure = Color(0xFF2BB0F7)
+    /** Between the accent and the second accent (upper part of the mark). */
+    val Azure: Color get() = FluideThemes.active.azure
 
-    /** Cyan: end of the "fluid" gradient, focus borders. */
-    val Cyan = Color(0xFF22D3EE)
+    /** Second accent: end of the "fluid" gradient, focus borders (cyan in the original theme). */
+    val Cyan: Color get() = FluideThemes.active.cyan
 
-    /** Light aqua highlight (lower part of the mark). */
-    val Aqua = Color(0xFF86F4FF)
+    /** Light highlight of the second accent (lower part of the mark). */
+    val Aqua: Color get() = FluideThemes.active.aqua
 
-    /** Secondary violet. */
-    val Violet = Color(0xFF7B3DFF)
+    /** Third accent (violet in the original theme). */
+    val Violet: Color get() = FluideThemes.active.violet
 
     /** Warm accent: live badges, recording, alerts. */
-    val Warm = Color(0xFFFF6A3D)
+    val Warm: Color get() = FluideThemes.active.warm
 
     /** Glass panel fill: white at 7 %. */
-    val Glass = Color(0x12FFFFFF)
+    val Glass: Color get() = FluideThemes.active.glass
 
     /** Glass panel border: white at 10 %. */
-    val GlassBorder = Color(0x1AFFFFFF)
+    val GlassBorder: Color get() = FluideThemes.active.glassBorder
+
+    /** Text and icons drawn over [FluideGradient] or a solid accent (dark on the light accents). */
+    val OnAccent: Color get() = FluideThemes.active.onAccent
+
+    /** Default text colour of the screens. */
+    val Text: Color get() = FluideThemes.active.text
+
+    /** Main text, slightly tinted by the theme. */
+    val Soft: Color get() = FluideThemes.active.soft
+
+    /** Secondary text (meta, labels). */
+    val Muted: Color get() = FluideThemes.active.muted
+
+    /** Tertiary text (hints, past items). */
+    val Dim: Color get() = FluideThemes.active.dim
+
+    /** Opaque raised surface (focused text field, wells). */
+    val Raised: Color get() = FluideThemes.active.raised
+
+    /** Translucent panel drawn over the video. */
+    val Panel: Color get() = FluideThemes.active.panel
 }
 
-/** The "fluid" gradient (electric blue to cyan, top-left to bottom-right of the drawn area). */
-val FluideGradient: Brush = Brush.linearGradient(listOf(FluideColors.Blue, FluideColors.Cyan))
+/** The "fluid" gradient (accent to second accent, top-left to bottom-right of the drawn area). */
+val FluideGradient: Brush get() = FluideThemes.active.gradient
 
 /** Glass panel: white 7 % fill with a 1 dp white 10 % border ([shape]: 16 dp for cards, 12 dp for rows). */
 fun Modifier.fluideGlass(shape: Shape = RoundedCornerShape(16.dp)): Modifier =
@@ -71,7 +97,8 @@ fun Modifier.fluideGlass(shape: Shape = RoundedCornerShape(16.dp)): Modifier =
 
 /**
  * The Fluide Player logo: the mark followed, when [withWordmark], by the word mark "Fluide" (bold,
- * white) "Player" (lighter, cyan). [size] is the height of the mark; the word mark is sized from it.
+ * white) "Player" (lighter, second accent of the theme). [size] is the height of the mark; the word
+ * mark is sized from it.
  */
 @Composable
 fun FluideLogo(modifier: Modifier = Modifier, size: Dp = 40.dp, withWordmark: Boolean = true) {
@@ -97,8 +124,8 @@ fun FluideLogo(modifier: Modifier = Modifier, size: Dp = 40.dp, withWordmark: Bo
 }
 
 /**
- * The Fluide Player mark alone: a rounded play triangle filled with a flowing wave, an electric blue
- * upper part and a cyan "liquid" lower part split by a wavy gap. Drawn in the square of [modifier]
+ * The Fluide Player mark alone: a rounded play triangle filled with a flowing wave, an accent coloured
+ * upper part and a second accent "liquid" lower part split by a wavy gap (in the colours of the theme). Drawn in the square of [modifier]
  * (give it a size). Same geometry as the launcher icon and the TV banner (res/drawable).
  */
 @Composable

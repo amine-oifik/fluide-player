@@ -85,22 +85,39 @@ import app.fluide.player.ui.components.FocusableRow
 import app.fluide.player.ui.components.Glyph
 import app.fluide.player.ui.components.formatClock
 import app.fluide.player.ui.media.openExternal
+import app.fluide.player.ui.theme.blend
+import app.fluide.player.ui.theme.themed
 import kotlinx.coroutines.delay
 import java.util.Date
 
-/** Scrim under the video controls: transparent at the top, deep navy at the bottom. */
-private val ControlsScrim = Brush.verticalGradient(
-    listOf(Color.Transparent, Color(0x99070B1C), Color(0xE6060A1A), Color(0xF5050816)),
-)
+/** Scrim under the video controls: transparent at the top, the deep background of the theme at the bottom. */
+private val ControlsScrim: Brush by themed {
+    Brush.verticalGradient(
+        listOf(
+            Color.Transparent,
+            it.navy.copy(alpha = 0.6f),
+            blend(it.navy, Color.Black, 0.08f).copy(alpha = 0.9f),
+            blend(it.navy, Color.Black, 0.22f).copy(alpha = 0.96f),
+        ),
+    )
+}
 private val SeekTrack = Color(0x2EFFFFFF)
-private val SeekBrush = Brush.horizontalGradient(listOf(FluideColors.Blue, FluideColors.Cyan))
+private val SeekBrush: Brush by themed { Brush.horizontalGradient(listOf(it.blue, it.cyan)) }
 private val RoundIdle = SolidColor(Color(0x24FFFFFF))
 private val DialogShape = RoundedCornerShape(24.dp)
-private val DialogBrush = Brush.verticalGradient(listOf(Color(0xF5161D42), Color(0xF50D1230), Color(0xF5140C2E)))
+private val DialogBrush: Brush by themed {
+    Brush.verticalGradient(
+        listOf(
+            it.dialogTop.copy(alpha = 0.96f),
+            it.dialogBottom.copy(alpha = 0.96f),
+            blend(it.night, it.violet, 0.04f).copy(alpha = 0.96f),
+        ),
+    )
+}
 private val PillShape = RoundedCornerShape(24.dp)
-private val SelectedChoice = Brush.horizontalGradient(
-    listOf(FluideColors.Blue.copy(alpha = 0.34f), FluideColors.Cyan.copy(alpha = 0.14f)),
-)
+private val SelectedChoice: Brush by themed {
+    Brush.horizontalGradient(listOf(it.blue.copy(alpha = 0.34f), it.cyan.copy(alpha = 0.14f)))
+}
 
 /**
  * Title, seek bar and buttons of the video player (movies, episodes, recordings). The remote drives it
@@ -329,7 +346,7 @@ private fun RoundButton(glyph: Glyph, modifier: Modifier = Modifier, onClick: ()
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        AppIcon(glyph, Color.White, size = 22.dp)
+        AppIcon(glyph, if (focused) FluideColors.OnAccent else Color.White, size = 22.dp)
     }
 }
 
@@ -356,7 +373,7 @@ private fun PlayButton(paused: Boolean, onClick: () -> Unit) {
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        AppIcon(if (paused) Glyph.PLAY else Glyph.PAUSE, Color.White, size = 30.dp)
+        AppIcon(if (paused) Glyph.PLAY else Glyph.PAUSE, FluideColors.OnAccent, size = 30.dp)
     }
 }
 
@@ -471,7 +488,7 @@ fun OptionsDialog(vm: MainViewModel, aspect: AspectMode, statsVisible: Boolean) 
                         .background(FluideGradient, CircleShape),
                     contentAlignment = Alignment.Center,
                 ) {
-                    AppIcon(Glyph.SETTINGS, Color.White, size = 20.dp)
+                    AppIcon(Glyph.SETTINGS, FluideColors.OnAccent, size = 20.dp)
                 }
                 Spacer(Modifier.width(14.dp))
                 Column(Modifier.weight(1f)) {
@@ -735,7 +752,11 @@ private fun ChoicePill(label: String, selected: Boolean, onClick: () -> Unit, mo
     ) {
         Text(
             label,
-            color = if (focused || selected) Color.White else OverlayColors.Soft,
+            color = when {
+                focused -> FluideColors.OnAccent
+                selected -> Color.White
+                else -> OverlayColors.Soft
+            },
             fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,

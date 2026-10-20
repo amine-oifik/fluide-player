@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -20,6 +21,7 @@ import androidx.compose.ui.unit.dp
 enum class Glyph {
     TV, MOVIE, SERIES, REPLAY, PLAYLIST, SETTINGS, REFRESH, EXIT, SEARCH, PLAY, PAUSE, STAR, LOCK, BACK, FORWARD, REWIND, NEXT, LIST, GUIDE,
     HOME, HEART, INFO, GRID, LANGUAGE, USER, CLOCK, CHECK,
+    MIC, ALARM, MOON, SPEED, SWITCH, CALENDAR, DOWNLOAD, UPLOAD, PALETTE, MULTISCREEN,
 }
 
 /**
@@ -214,6 +216,107 @@ fun AppIcon(glyph: Glyph, tint: Color, modifier: Modifier = Modifier, size: Dp =
                     lineTo(w * 0.86f, w * 0.27f)
                 }
                 drawPath(path, tint, style = Stroke(width = w * 0.1f, cap = StrokeCap.Round, join = StrokeJoin.Round))
+            }
+            Glyph.MIC -> {
+                drawRoundRect(tint, Offset(w * 0.36f, w * 0.08f), Size(w * 0.28f, w * 0.48f), CornerRadius(w * 0.14f), style = stroke)
+                drawArc(tint, 0f, 180f, false, Offset(w * 0.22f, w * 0.26f), Size(w * 0.56f, w * 0.46f), style = stroke)
+                drawLine(tint, Offset(w * 0.5f, w * 0.72f), Offset(w * 0.5f, w * 0.88f), stroke.width, StrokeCap.Round)
+                drawLine(tint, Offset(w * 0.34f, w * 0.88f), Offset(w * 0.66f, w * 0.88f), stroke.width, StrokeCap.Round)
+            }
+            Glyph.ALARM -> {
+                // A bell, its knob and its clapper.
+                val bell = Path().apply {
+                    moveTo(w * 0.16f, w * 0.74f)
+                    lineTo(w * 0.84f, w * 0.74f)
+                    cubicTo(w * 0.75f, w * 0.65f, w * 0.74f, w * 0.57f, w * 0.74f, w * 0.46f)
+                    cubicTo(w * 0.74f, w * 0.3f, w * 0.63f, w * 0.18f, w * 0.5f, w * 0.18f)
+                    cubicTo(w * 0.37f, w * 0.18f, w * 0.26f, w * 0.3f, w * 0.26f, w * 0.46f)
+                    cubicTo(w * 0.26f, w * 0.57f, w * 0.25f, w * 0.65f, w * 0.16f, w * 0.74f)
+                    close()
+                }
+                drawPath(bell, tint, style = joined)
+                drawLine(tint, Offset(w * 0.5f, w * 0.08f), Offset(w * 0.5f, w * 0.18f), stroke.width, StrokeCap.Round)
+                drawArc(tint, 0f, 180f, false, Offset(w * 0.4f, w * 0.68f), Size(w * 0.2f, w * 0.2f), style = stroke)
+            }
+            Glyph.MOON -> {
+                // Crescent: the outer circle, then the inner edge along a second circle.
+                val moon = Path().apply {
+                    arcTo(Rect(Offset(w * 0.5f, w * 0.5f), w * 0.38f), 13.3f, 256.1f, true)
+                    arcTo(Rect(Offset(w * 0.7f, w * 0.34f), w * 0.3f), 227.2f, -171.6f, false)
+                    close()
+                }
+                drawPath(moon, tint, style = joined)
+            }
+            Glyph.SPEED -> {
+                // Gauge: an open dial, its needle and its hub.
+                val hub = Offset(w * 0.5f, w * 0.6f)
+                drawArc(tint, 150f, 240f, false, Offset(w * 0.12f, w * 0.22f), Size(w * 0.76f, w * 0.76f), style = stroke)
+                drawLine(tint, hub, Offset(w * 0.71f, w * 0.39f), stroke.width, StrokeCap.Round)
+                drawCircle(tint, w * 0.075f, hub)
+            }
+            Glyph.SWITCH -> {
+                drawLine(tint, Offset(w * 0.12f, w * 0.32f), Offset(w * 0.76f, w * 0.32f), stroke.width, StrokeCap.Round)
+                arrowHead(tint, Offset(w * 0.9f, w * 0.32f), w * 0.2f, 0f)
+                drawLine(tint, Offset(w * 0.88f, w * 0.68f), Offset(w * 0.24f, w * 0.68f), stroke.width, StrokeCap.Round)
+                arrowHead(tint, Offset(w * 0.1f, w * 0.68f), w * 0.2f, 180f)
+            }
+            Glyph.CALENDAR -> {
+                drawRoundRect(tint, Offset(w * 0.1f, w * 0.16f), Size(w * 0.8f, w * 0.72f), CornerRadius(w * 0.08f), style = stroke)
+                drawLine(tint, Offset(w * 0.1f, w * 0.36f), Offset(w * 0.9f, w * 0.36f), stroke.width, StrokeCap.Round)
+                drawLine(tint, Offset(w * 0.32f, w * 0.06f), Offset(w * 0.32f, w * 0.22f), stroke.width, StrokeCap.Round)
+                drawLine(tint, Offset(w * 0.68f, w * 0.06f), Offset(w * 0.68f, w * 0.22f), stroke.width, StrokeCap.Round)
+                for (row in 0..1) {
+                    for (col in 0..2) {
+                        drawRoundRect(
+                            tint,
+                            Offset(w * (0.25f + col * 0.2f), w * (0.48f + row * 0.18f)),
+                            Size(w * 0.1f, w * 0.1f),
+                            CornerRadius(w * 0.02f),
+                        )
+                    }
+                }
+            }
+            Glyph.DOWNLOAD, Glyph.UPLOAD -> {
+                if (glyph == Glyph.DOWNLOAD) {
+                    drawLine(tint, Offset(w * 0.5f, w * 0.08f), Offset(w * 0.5f, w * 0.5f), stroke.width, StrokeCap.Round)
+                    arrowHead(tint, Offset(w * 0.5f, w * 0.64f), w * 0.22f, 90f)
+                } else {
+                    drawLine(tint, Offset(w * 0.5f, w * 0.64f), Offset(w * 0.5f, w * 0.22f), stroke.width, StrokeCap.Round)
+                    arrowHead(tint, Offset(w * 0.5f, w * 0.08f), w * 0.22f, 270f)
+                }
+                val tray = Path().apply {
+                    moveTo(w * 0.14f, w * 0.62f)
+                    lineTo(w * 0.14f, w * 0.88f)
+                    lineTo(w * 0.86f, w * 0.88f)
+                    lineTo(w * 0.86f, w * 0.62f)
+                }
+                drawPath(tray, tint, style = joined)
+            }
+            Glyph.PALETTE -> {
+                // Painter's palette with its thumb notch and four paint dots.
+                val board = Path().apply {
+                    moveTo(w * 0.5f, w * 0.1f)
+                    cubicTo(w * 0.76f, w * 0.1f, w * 0.92f, w * 0.28f, w * 0.92f, w * 0.48f)
+                    cubicTo(w * 0.92f, w * 0.64f, w * 0.8f, w * 0.7f, w * 0.68f, w * 0.66f)
+                    cubicTo(w * 0.58f, w * 0.63f, w * 0.52f, w * 0.7f, w * 0.56f, w * 0.78f)
+                    cubicTo(w * 0.6f, w * 0.88f, w * 0.52f, w * 0.92f, w * 0.44f, w * 0.9f)
+                    cubicTo(w * 0.22f, w * 0.86f, w * 0.08f, w * 0.68f, w * 0.08f, w * 0.48f)
+                    cubicTo(w * 0.08f, w * 0.26f, w * 0.26f, w * 0.1f, w * 0.5f, w * 0.1f)
+                    close()
+                }
+                drawPath(board, tint, style = joined)
+                drawCircle(tint, w * 0.065f, Offset(w * 0.28f, w * 0.52f))
+                drawCircle(tint, w * 0.065f, Offset(w * 0.34f, w * 0.32f))
+                drawCircle(tint, w * 0.065f, Offset(w * 0.54f, w * 0.25f))
+                drawCircle(tint, w * 0.065f, Offset(w * 0.73f, w * 0.38f))
+            }
+            Glyph.MULTISCREEN -> {
+                // A screen split in four, on its stand.
+                drawRoundRect(tint, Offset(w * 0.06f, w * 0.12f), Size(w * 0.88f, w * 0.62f), CornerRadius(w * 0.07f), style = stroke)
+                drawLine(tint, Offset(w * 0.5f, w * 0.12f), Offset(w * 0.5f, w * 0.74f), stroke.width, StrokeCap.Round)
+                drawLine(tint, Offset(w * 0.06f, w * 0.43f), Offset(w * 0.94f, w * 0.43f), stroke.width, StrokeCap.Round)
+                drawLine(tint, Offset(w * 0.5f, w * 0.74f), Offset(w * 0.5f, w * 0.88f), stroke.width, StrokeCap.Round)
+                drawLine(tint, Offset(w * 0.32f, w * 0.88f), Offset(w * 0.68f, w * 0.88f), stroke.width, StrokeCap.Round)
             }
         }
     }

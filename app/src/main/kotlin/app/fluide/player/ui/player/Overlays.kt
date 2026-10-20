@@ -69,6 +69,8 @@ import app.fluide.player.ui.components.FluideColors
 import app.fluide.player.ui.components.FluideGradient
 import app.fluide.player.ui.components.Glyph
 import app.fluide.player.ui.components.formatDuration
+import app.fluide.player.ui.theme.blend
+import app.fluide.player.ui.theme.themed
 import coil.compose.AsyncImage
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
@@ -79,9 +81,9 @@ import java.util.Locale
 
 /** Overlay palette: the glass is darker than on the screens, the video behind can be bright. */
 internal object OverlayColors {
-    val Soft = Color(0xFFDCE3F2)
-    val Muted = Color(0xFFAEB7D3)
-    val Dim = Color(0xFF8A93B0)
+    val Soft: Color get() = FluideColors.Soft
+    val Muted: Color get() = FluideColors.Muted
+    val Dim: Color by themed { blend(it.dim, it.muted, 0.27f) }
 
     /** 1 dp border of the glass panels: white 12 %. */
     val Border = Color(0x1FFFFFFF)
@@ -90,14 +92,22 @@ internal object OverlayColors {
     val Track = Color(0x2EFFFFFF)
 }
 
-/** Deep navy glass, slightly violet at the end (panels over the video). */
-internal val OverlayBrush = Brush.linearGradient(listOf(Color(0xEB101836), Color(0xEB0A1028), Color(0xEB150C2E)))
+/** Deep glass of the theme, tinted by the third accent at the end (panels over the video). */
+internal val OverlayBrush: Brush by themed {
+    Brush.linearGradient(
+        listOf(
+            blend(it.raised, it.surface, 0.52f).copy(alpha = 0.92f),
+            blend(it.navy, it.raised, 0.36f).copy(alpha = 0.92f),
+            blend(it.night, it.violet, 0.04f).copy(alpha = 0.92f),
+        ),
+    )
+}
 
 private val OverlayShape = RoundedCornerShape(16.dp)
 private val BannerShape = RoundedCornerShape(20.dp)
-private val BannerAccent = Brush.horizontalGradient(listOf(FluideColors.Blue, FluideColors.Cyan, Color.Transparent))
-private val LiveBrush = Brush.horizontalGradient(listOf(FluideColors.Warm, Color(0xFFFF9150)))
-private val ProgressBrush = Brush.horizontalGradient(listOf(FluideColors.Blue, FluideColors.Cyan))
+private val BannerAccent: Brush by themed { Brush.horizontalGradient(listOf(it.blue, it.cyan, Color.Transparent)) }
+private val LiveBrush: Brush by themed { Brush.horizontalGradient(listOf(it.warm, Color(0xFFFF9150))) }
+private val ProgressBrush: Brush by themed { Brush.horizontalGradient(listOf(it.blue, it.cyan)) }
 
 /** Time of the day in the format chosen in the settings (24 h or 12 h). */
 @Composable
@@ -174,7 +184,7 @@ fun WaitingIndicator(waitingSinceMs: Long, modifier: Modifier = Modifier) {
             modifier
                 .size(36.dp)
                 .clip(CircleShape)
-                .background(Color(0x99070B1C), CircleShape),
+                .background(FluideColors.Navy.copy(alpha = 0.6f), CircleShape),
             contentAlignment = Alignment.Center,
         ) {
             CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.5.dp, color = FluideColors.Cyan)
@@ -231,7 +241,7 @@ fun ZapBanner(
                                 it.toString(),
                                 style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.ExtraBold,
-                                color = Color.White,
+                                color = FluideColors.OnAccent,
                                 maxLines = 1,
                             )
                         }
@@ -440,9 +450,9 @@ fun ErrorOverlay(error: PlaybackError, onRetry: () -> Unit, modifier: Modifier =
                 .padding(horizontal = 20.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            AppIcon(Glyph.REFRESH, Color.White, size = 18.dp)
+            AppIcon(Glyph.REFRESH, FluideColors.OnAccent, size = 18.dp)
             Spacer(Modifier.width(10.dp))
-            Text(stringResource(R.string.error_retry_hint), color = Color.White, fontWeight = FontWeight.SemiBold, maxLines = 1)
+            Text(stringResource(R.string.error_retry_hint), color = FluideColors.OnAccent, fontWeight = FontWeight.SemiBold, maxLines = 1)
         }
     }
 }
@@ -474,7 +484,7 @@ fun StatsOverlay(provider: () -> PlaybackStats?, modifier: Modifier = Modifier) 
         modifier = modifier
             .padding(24.dp)
             .clip(shape)
-            .background(Color(0xD9070B1C), shape)
+            .background(FluideColors.Navy.copy(alpha = 0.85f), shape)
             .border(1.dp, OverlayColors.Border, shape)
             .padding(horizontal = 14.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(1.dp),
@@ -494,7 +504,7 @@ fun StatsOverlay(provider: () -> PlaybackStats?, modifier: Modifier = Modifier) 
             )
         }
         for (line in lines) {
-            Text(line, fontFamily = FontFamily.Monospace, fontSize = 13.sp, color = Color(0xFFCDEBFF))
+            Text(line, fontFamily = FontFamily.Monospace, fontSize = 13.sp, color = blend(FluideColors.Azure, Color.White, 0.76f))
         }
     }
 }

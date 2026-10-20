@@ -48,22 +48,4 @@
 
     <!-- Previous home layout (rows): no longer used, kept while values-en and values-ar translate them
          (removing them here alone would make those translations extra). -->
-    <string name="home_search">Rechercher</string>
-    <string name="home_pill_expires">Expire dans %1$d j</string>
-    <string name="home_welcome_text">Vos chaînes, vos films et vos séries réunis au même endroit. Choisissez une rubrique pour commencer.</string>
-    <string name="home_hero_resume">Reprendre</string>
-    <string name="home_hero_watch">Regarder</string>
-    <string name="home_hero_tag_resume">Reprendre la lecture</string>
-    <string name="home_hero_tag_new">Nouveauté</string>
-    <string name="home_hero_watched">Vu à %1$d %%</string>
-    <string name="home_hero_all_movies">Tous les films</string>
-    <string name="home_tile_replay_hint">Revoir les programmes passés</string>
-    <string name="home_row_favorite_channels">Chaînes favorites</string>
-    <string name="home_row_recent_channels">Regardées récemment</string>
-    <string name="home_row_recent_movies">Films ajoutés récemment</string>
-    <string name="home_row_recent_series">Séries ajoutées récemment</string>
-    <string name="home_see_all">Tout voir</string>
-    <string name="home_badge_movie">Film</string>
-    <string name="home_badge_series">Série</string>
-    <string name="home_no_programme">Programme non communiqué</string>
 </resources>

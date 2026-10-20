@@ -510,8 +510,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun importBackup(uri: Uri) {
+    /**
+     * Restores a backup. It replaces the parental settings too, so the current PIN is asked first while the
+     * parental control is on. [onRestored] tells whether the language changed (the activity must be recreated).
+     */
+    fun importBackup(uri: Uri, onRestored: (languageChanged: Boolean) -> Unit = {}) {
+        if (settingsStore.current.parentalEnabled) requireCurrentPin { restoreBackup(uri, onRestored) } else restoreBackup(uri, onRestored)
+    }
+
+    private fun restoreBackup(uri: Uri, onRestored: (languageChanged: Boolean) -> Unit) {
         viewModelScope.launch {
+            val languageBefore = settingsStore.current.language
             val result = graph.backup.import(uri)
             result.onSuccess { count ->
                 settingsStore.reload()
@@ -521,14 +530,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 val active = uiState.value.activeSourceId.takeIf { id -> sourceManager.sources.value.any { it.id == id } }
                     ?: sourceManager.sources.value.firstOrNull()?.id
                 if (active != null) activate(active, resume = false)
+                onRestored(settingsStore.current.language != languageBefore)
             }.onFailure { toast(R.string.restore_failed, text = it.message ?: "") }
         }
     }
 
     fun setEpgOffset(sourceId: Long, minutes: Int) {
         viewModelScope.launch {
+            // The stored programmes are moved by the source manager: no new download.
             sourceManager.setEpgOffset(sourceId, minutes)
-            sourceManager.refresh(sourceId, playlist = false, epg = true)
         }
     }
 
@@ -1136,7 +1146,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 val streamId = channel.url.substringAfterLast('/').substringBefore('.').toLongOrNull() ?: return@runCatching false
                 val login = sourceManager.login(source.id) ?: return@runCatching false
                 val list = sourceManager.xtream.shortEpg(login, streamId, coroutineContext.job)
-                repository.storeProgrammes(key, list.map { Programme(it.startSec, it.stopSec, it.title, null, it.description, null) })
+                val shift = source.epgOffsetMinutes * 60L
+                repository.storeProgrammes(key, list.map { Programme(it.startSec + shift, it.stopSec + shift, it.title, null, it.description, null) })
                 list.isNotEmpty()
             }.getOrDefault(false)
         }.also { stored -> if (stored) pager.invalidate() }

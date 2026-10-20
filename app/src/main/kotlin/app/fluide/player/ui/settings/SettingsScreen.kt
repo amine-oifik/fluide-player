@@ -96,7 +96,7 @@ fun SettingsScreen(vm: MainViewModel) {
         if (uri != null) vm.exportBackup(uri)
     }
     val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri != null) vm.importBackup(uri)
+        if (uri != null) vm.importBackup(uri) { languageChanged -> if (languageChanged) activity?.recreate() }
     }
     // Survives the recreation that applies a new language: the focus then comes back to the language row.
     var focusLanguage by rememberSaveable { mutableStateOf(false) }
